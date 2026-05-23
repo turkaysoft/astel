@@ -101,11 +101,23 @@ namespace Astel.astel_modules{
             BtnLogin.Enabled = false;
             //
             bool login_status = await Task.Run(() =>{
-                TSSettingsModule read = new TSSettingsModule(ts_session_file);
-                string saved_salt = read.TSReadSettings(ts_session_container, "PasswordSalt");
-                string saved_password = read.TSReadSettings(ts_session_container, "PasswordHash");
-                string hashed_input = TSHashPassword(get_password, saved_salt);
-                return hashed_input == saved_password;
+                try{
+                    TSSettingsModule read = new TSSettingsModule(ts_session_file);
+                    string protected_salt = read.TSReadSettings(ts_session_container, "PasswordSalt");
+                    string protected_password = read.TSReadSettings(ts_session_container, "PasswordHash");
+                    if (string.IsNullOrEmpty(protected_salt) || string.IsNullOrEmpty(protected_password))
+                        return false;
+                    try{
+                        string saved_salt = TS_SessionProtection.UnprotectSessionData(protected_salt);
+                        string saved_password = TS_SessionProtection.UnprotectSessionData(protected_password);
+                        string hashed_input = TSHashPassword(get_password, saved_salt, 210000);
+                        return FixedTimeStringEquals(hashed_input, saved_password);
+                    }catch(Exception){
+                        return false;
+                    }
+                }catch(Exception){
+                    return false;
+                }
             });
             //
             if (login_status){

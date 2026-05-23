@@ -122,16 +122,16 @@ namespace Astel.astel_modules{
             //
             bool set_password_status = await Task.Run(() =>{
                 try{
-                    string salt = GenerateSalt();
-                    string hashed_password = TSHashPassword(password_1, salt);
-                    //
+                    string salt = GenerateSalt(16);
+                    string hashed_password = TSHashPassword(password_1, salt, 210000);
+                    string crossLinker = GenerateSecureRandomString(32);
                     TSSettingsModule software_setting_save = new TSSettingsModule(ts_session_file);
                     software_setting_save.TSWriteSettings(ts_session_container, "SessionMode", "1");
-                    software_setting_save.TSWriteSettings(ts_session_container, "PasswordHash", hashed_password);
-                    software_setting_save.TSWriteSettings(ts_session_container, "PasswordSalt", salt);
-                    software_setting_save.TSWriteSettings(ts_session_container, "CrossLinker", GenerateSecureRandomString(32));
+                    software_setting_save.TSWriteSettings(ts_session_container, "PasswordHash", TS_SessionProtection.ProtectSessionData(hashed_password));
+                    software_setting_save.TSWriteSettings(ts_session_container, "PasswordSalt", TS_SessionProtection.ProtectSessionData(salt));
+                    software_setting_save.TSWriteSettings(ts_session_container, "CrossLinker", TS_SessionProtection.ProtectSessionData(crossLinker));
                     return true;
-                }catch{
+                }catch(Exception){
                     return false;
                 }
             });

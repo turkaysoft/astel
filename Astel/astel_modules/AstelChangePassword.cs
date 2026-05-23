@@ -123,25 +123,34 @@ namespace Astel.astel_modules{
             BtnChangePassword.Enabled = false;
             //
             bool change_password_status = await Task.Run(() =>{
-                TSSettingsModule read = new TSSettingsModule(ts_session_file);
-                string saved_salt = read.TSReadSettings(ts_session_container, "PasswordSalt");
-                string saved_password = read.TSReadSettings(ts_session_container, "PasswordHash");
-                //
-                if (string.IsNullOrEmpty(saved_salt) || string.IsNullOrEmpty(saved_password)){
+                try{
+                    TSSettingsModule read = new TSSettingsModule(ts_session_file);
+                    string protected_salt = read.TSReadSettings(ts_session_container, "PasswordSalt");
+                    string protected_password = read.TSReadSettings(ts_session_container, "PasswordHash");
+                    if (string.IsNullOrEmpty(protected_salt) || string.IsNullOrEmpty(protected_password)){
+                        return false;
+                    }
+                    try{
+                        string saved_salt = TS_SessionProtection.UnprotectSessionData(protected_salt);
+                        string saved_password = TS_SessionProtection.UnprotectSessionData(protected_password);
+                        string hashed_current = TSHashPassword(password_current, saved_salt, 210000);
+                        if (!FixedTimeStringEquals(hashed_current, saved_password)){
+                            return false;
+                        }
+                        string new_salt = GenerateSalt(16);
+                        string new_hashed = TSHashPassword(password_new, new_salt, 210000);
+                        string protected_new_salt = TS_SessionProtection.ProtectSessionData(new_salt);
+                        string protected_new_hash = TS_SessionProtection.ProtectSessionData(new_hashed);
+                        TSSettingsModule write = new TSSettingsModule(ts_session_file);
+                        write.TSWriteSettings(ts_session_container, "PasswordSalt", protected_new_salt);
+                        write.TSWriteSettings(ts_session_container, "PasswordHash", protected_new_hash);
+                        return true;
+                    }catch(Exception){
+                        return false;
+                    }
+                }catch(Exception){
                     return false;
                 }
-                string hashed_current = TSHashPassword(password_current, saved_salt);
-                if (hashed_current != saved_password){
-                    return false;
-                }
-                //
-                string new_salt = GenerateSalt();
-                string new_hashed = TSHashPassword(password_new, new_salt);
-                //
-                TSSettingsModule write = new TSSettingsModule(ts_session_file);
-                write.TSWriteSettings(ts_session_container, "PasswordSalt", new_salt);
-                write.TSWriteSettings(ts_session_container, "PasswordHash", new_hashed);
-                return true;
             });
             //
             if (change_password_status){

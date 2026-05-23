@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Astel")]
 [assembly: AssemblyDescription("Astel - Password Management Software")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Türkay Software")]
+[assembly: AssemblyCompany("Türkaysoft")]
 [assembly: AssemblyProduct("Astel")]
 [assembly: AssemblyCopyright("© 2024-2026, Eray Türkay.")]
 [assembly: AssemblyTrademark("")]
@@ -30,6 +30,6 @@ using System.Runtime.InteropServices;
 //      Yapı Numarası
 //      Düzeltme
 //
-[assembly: AssemblyVersion("26.4.0.0")]
-[assembly: AssemblyFileVersion("26.4.0.0")]
+[assembly: AssemblyVersion("26.5.0.0")]
+[assembly: AssemblyFileVersion("26.5.0.0")]
 [assembly: NeutralResourcesLanguage("tr-TR")]

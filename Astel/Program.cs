@@ -17,6 +17,10 @@ namespace Astel{
         // TS PRELOADER DEBUG MODE
         public static readonly bool ts_pre_debug_mode = false;
         // ======================================================================================================
+        // TS UPDATER TEXT
+        public static readonly string updater_exe_name = "TSUpdater.exe";
+        public static readonly string updater_old_exe_name = "TSUpdater.exe.old";
+        // ======================================================================================================
         [STAThread]
         static void Main(){
             SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);

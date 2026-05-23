@@ -553,26 +553,6 @@ namespace Astel.Properties {
         /// <summary>
         ///   System.Drawing.Bitmap türünde yerelleştirilmiş bir kaynak arar.
         /// </summary>
-        internal static System.Drawing.Bitmap tm_ts_wizard_dark {
-            get {
-                object obj = ResourceManager.GetObject("tm_ts_wizard_dark", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   System.Drawing.Bitmap türünde yerelleştirilmiş bir kaynak arar.
-        /// </summary>
-        internal static System.Drawing.Bitmap tm_ts_wizard_light {
-            get {
-                object obj = ResourceManager.GetObject("tm_ts_wizard_light", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   System.Drawing.Bitmap türünde yerelleştirilmiş bir kaynak arar.
-        /// </summary>
         internal static System.Drawing.Bitmap tm_update_dark {
             get {
                 object obj = ResourceManager.GetObject("tm_update_dark", resourceCulture);

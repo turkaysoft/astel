@@ -99,7 +99,6 @@
             this.changePasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkforUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.passwordGeneratorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.tSWizardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.donateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Panel_Main.SuspendLayout();
@@ -548,7 +547,6 @@
             this.HeaderMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.settingsToolStripMenuItem,
             this.passwordGeneratorToolStripMenuItem,
-            this.tSWizardToolStripMenuItem,
             this.donateToolStripMenuItem,
             this.aboutToolStripMenuItem});
             this.HeaderMenu.Location = new System.Drawing.Point(0, 0);
@@ -891,16 +889,6 @@
             this.passwordGeneratorToolStripMenuItem.Text = "Password Generator";
             this.passwordGeneratorToolStripMenuItem.Click += new System.EventHandler(this.PasswordGeneratorToolStripMenuItem_Click);
             // 
-            // tSWizardToolStripMenuItem
-            // 
-            this.tSWizardToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.tSWizardToolStripMenuItem.Name = "tSWizardToolStripMenuItem";
-            this.tSWizardToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.S)));
-            this.tSWizardToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
-            this.tSWizardToolStripMenuItem.Text = "TSWizard";
-            this.tSWizardToolStripMenuItem.Click += new System.EventHandler(this.TSWizardToolStripMenuItem_Click);
-            // 
             // donateToolStripMenuItem
             // 
             this.donateToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -982,7 +970,6 @@
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem windowedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fullScreenToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem tSWizardToolStripMenuItem;
         internal System.Windows.Forms.Label LabelService;
         private System.Windows.Forms.TextBox TxtService;
         private System.Windows.Forms.FlowLayoutPanel FLP_Btns;

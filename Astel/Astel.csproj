@@ -63,10 +63,13 @@
     <StartupObject>Astel.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <Reference Include="System">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8.1\System.dll</HintPath>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Management" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -149,7 +152,6 @@
     <Content Include="AstelLogo.ico" />
     <None Include="astel_images\astel_ui\ts_material\ts_close.png" />
     <None Include="astel_images\astel_ui\theme_light\tm_update_light.png" />
-    <None Include="astel_images\astel_ui\theme_light\tm_ts_wizard_light.png" />
     <None Include="astel_images\astel_ui\theme_light\tm_theme_light.png" />
     <None Include="astel_images\astel_ui\theme_light\tm_startup_light.png" />
     <None Include="astel_images\astel_ui\theme_light\tm_settings_light.png" />
@@ -164,7 +166,6 @@
     <None Include="astel_images\astel_ui\theme_light\tm_change_password_light.png" />
     <None Include="astel_images\astel_ui\theme_light\tm_auto_backup_light.png" />
     <None Include="astel_images\astel_ui\theme_light\tm_about_light.png" />
-    <None Include="astel_images\astel_ui\theme_light\ct_website_light.png" />
     <None Include="astel_images\astel_ui\theme_light\ct_update_light.png" />
     <None Include="astel_images\astel_ui\theme_light\ct_login_light.png" />
     <None Include="astel_images\astel_ui\theme_light\ct_link_mc_light.png" />
@@ -175,7 +176,6 @@
     <None Include="astel_images\astel_ui\theme_light\ct_confirm_light.png" />
     <None Include="astel_images\astel_ui\theme_light\ct_add_light.png" />
     <None Include="astel_images\astel_ui\theme_dark\tm_update_dark.png" />
-    <None Include="astel_images\astel_ui\theme_dark\tm_ts_wizard_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\tm_theme_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\tm_startup_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\tm_settings_dark.png" />
@@ -190,7 +190,6 @@
     <None Include="astel_images\astel_ui\theme_dark\tm_change_password_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\tm_auto_backup_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\tm_about_dark.png" />
-    <None Include="astel_images\astel_ui\theme_dark\ct_website_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\ct_update_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\ct_login_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\ct_link_mc_dark.png" />

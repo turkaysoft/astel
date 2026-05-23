@@ -214,7 +214,5 @@ namespace Astel.astel_modules{
                 MainToolTip.SetToolTip(PassResultLabel, lang.TSReadLangs("AstelPasswordGenerator", "apg_pass_copy"));
             }
         }
-
-       
     }
 }

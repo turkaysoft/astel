@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -10,6 +9,9 @@ using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Net.NetworkInformation;
+using System.Net.Http;
 
 namespace Astel{
     internal class TSModules{
@@ -21,14 +23,13 @@ namespace Astel{
         public class TS_LinkSystem{
             public const string
             // Main Control Links
-            github_link_lv      = "https://raw.githubusercontent.com/turkaysoftware/astel/main/Astel/SoftwareVersion.txt",
-            github_link_lr      = "https://github.com/turkaysoftware/astel/releases/latest",
+            github_link_lv      = "https://raw.githubusercontent.com/turkaysoft/astel/main/Astel/SoftwareVersion.txt",
+            github_link_lr      = "https://github.com/turkaysoft/astel/releases/latest",
             // Social Links
-            website_link        = "https://www.turkaysoftware.com",
-            github_link         = "https://github.com/turkaysoftware",
+            website_link        = "https://turkaysoft.com",
+            github_link         = "https://github.com/turkaysoft",
             // Other Links
-            ts_wizard           = "https://www.turkaysoftware.com/ts-wizard",
-            ts_donate           = "https://buymeacoffee.com/turkaysoftware";
+            ts_donate           = "https://buymeacoffee.com/turkaysoft";
         }
         // VERSIONS
         // ======================================================================================================
@@ -590,11 +591,11 @@ namespace Astel{
             // ====================================
             public static Color ColorMode(int theme, string key){
                 if (theme == 0){
-                    return DarkTheme.ContainsKey(key) ? DarkTheme[key] : Color.Transparent;
+                    return DarkTheme.ContainsKey(key) ? DarkTheme[key] : Color.Black;
                 }else if (theme == 1){
-                    return LightTheme.ContainsKey(key) ? LightTheme[key] : Color.Transparent;
+                    return LightTheme.ContainsKey(key) ? LightTheme[key] : Color.White;
                 }
-                return Color.Transparent;
+                return Color.White;
             }
         }
         // THEME MODE HELPER
@@ -657,71 +658,100 @@ namespace Astel{
         }
         // DPI SENSITIVE DYNAMIC IMAGE RENDERER
         // ======================================================================================================
+        private static readonly object _lock_icon = new object();
+        private static readonly Dictionary<string, Image> _cache_icon = new Dictionary<string, Image>();
         public static void TSImageRenderer(object baseTarget, Image sourceImage, int basePadding, ContentAlignment imageAlign = ContentAlignment.MiddleCenter){
-            if (sourceImage == null || baseTarget == null) return;
+            if (baseTarget == null || sourceImage == null) return;
             const int minImageSize = 16;
-            try{
-                int calculatedSize;
-                Image previousImage = null;
-                Image ResizeImage(Image targetImg, int targetSize){
-                    Bitmap resizedEngine = new Bitmap(targetSize, targetSize, PixelFormat.Format32bppArgb);
-                    using (Graphics renderGraphics = Graphics.FromImage(resizedEngine)){
-                        renderGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        renderGraphics.SmoothingMode = SmoothingMode.AntiAlias;
-                        renderGraphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                        renderGraphics.CompositingQuality = CompositingQuality.HighQuality;
-                        renderGraphics.DrawImage(targetImg, 0, 0, targetSize, targetSize);
-                    }
-                    return resizedEngine;
+            Image ResizeImage(Image targetImg, int targetSize){
+                var bmp = new Bitmap(targetSize, targetSize, PixelFormat.Format32bppArgb);
+                using (var g = Graphics.FromImage(bmp)){
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.DrawImage(targetImg, 0, 0, targetSize, targetSize);
                 }
-                if (baseTarget is Control targetControl){
-                    float dpi = targetControl.DeviceDpi > 0 ? targetControl.DeviceDpi : 96f;
-                    float dpiScaleFactor = dpi / 96f;
-                    int paddingWithScale = (int)Math.Round(basePadding * dpiScaleFactor);
-                    //
-                    calculatedSize = targetControl.Height - paddingWithScale;
-                    if (calculatedSize <= 0) { calculatedSize = minImageSize; }
-                    Image resizedImage = ResizeImage(sourceImage, calculatedSize);
-                    if (targetControl is Button buttonMode){
-                        previousImage = buttonMode.Image;
-                        buttonMode.Image = resizedImage;
-                        buttonMode.ImageAlign = imageAlign;
-                    }else if (targetControl is PictureBox pictureBoxMode){
-                        previousImage = pictureBoxMode.Image;
-                        pictureBoxMode.Image = resizedImage;
-                        pictureBoxMode.SizeMode = PictureBoxSizeMode.Zoom;
+                return bmp;
+            }
+            Image newImage = null;
+            Image oldImage = null;
+            try{
+                int size;
+                float dpi;
+                if (baseTarget is Control ctrl){
+                    dpi = ctrl.DeviceDpi > 0 ? ctrl.DeviceDpi : 96f;
+                    int padding = (int)Math.Round(basePadding * (dpi / 96f));
+                    size = ctrl.Height - padding;
+                    if (size <= 0) size = minImageSize;
+                    string key = $"{sourceImage.GetHashCode()}_C_{size}_{dpi}";
+                    newImage = GetOrCreate(key, () => ResizeImage(sourceImage, size));
+                    if (ctrl is Button btn){
+                        oldImage = btn.Image;
+                        btn.Image = newImage;
+                        btn.ImageAlign = imageAlign;
+                    }else if (ctrl is PictureBox pb){
+                        oldImage = pb.Image;
+                        pb.Image = newImage;
+                        pb.SizeMode = PictureBoxSizeMode.Zoom;
                     }else{
-                        resizedImage.Dispose();
+                        newImage.Dispose();
+                        newImage = null;
                     }
-                }else if (baseTarget is ToolStripItem toolStripItemMode){
-                    calculatedSize = toolStripItemMode.Height - basePadding;
-                    if (calculatedSize <= 0){ calculatedSize = minImageSize; }
-                    Image resizedImage = ResizeImage(sourceImage, calculatedSize);
-                    previousImage = toolStripItemMode.Image;
-                    toolStripItemMode.Image = resizedImage;
+                }else if (baseTarget is ToolStripItem item){
+                    dpi = item.GetCurrentParent()?.DeviceDpi ?? 96f;
+                    int padding = (int)Math.Round(basePadding * (dpi / 96f));
+                    size = item.Height - padding;
+                    if (size <= 0) size = minImageSize;
+                    string key = $"{sourceImage.GetHashCode()}_T_{size}_{dpi}";
+                    newImage = GetOrCreate(key, () => ResizeImage(sourceImage, size));
+                    oldImage = item.Image;
+                    item.Image = newImage;
                 }else{
                     return;
                 }
-                if (previousImage != null && previousImage != sourceImage){ previousImage.Dispose(); }
-            }catch (Exception){ }
+                if (oldImage != null && !ReferenceEquals(oldImage, sourceImage)){
+                    oldImage.Dispose();
+                }
+            }catch{
+                newImage?.Dispose();
+            }
+        }
+        private static Image GetOrCreate(string key, Func<Image> factory){
+            lock (_lock_icon){
+                if (_cache_icon.TryGetValue(key, out Image cached))
+                    return cached;
+                var created = factory();
+                _cache_icon[key] = created;
+                return created;
+            }
         }
         // INTERNET CONNECTION STATUS
         // ======================================================================================================
-        public static bool IsNetworkCheck(){
+        public static async Task<bool> IsNetworkAvailable(){
+            if (!NetworkInterface.GetIsNetworkAvailable())
+                return false;
+            string[] urls ={
+                "https://www.gstatic.com/generate_204",
+                "https://www.cloudflare.com",
+                "https://www.google.com"
+            };
             try{
-                var check_net = (HttpWebRequest)WebRequest.Create("http://clients3.google.com/generate_204");
-                check_net.Method = "GET";
-                check_net.KeepAlive = false;
-                check_net.Proxy = null;
-                check_net.Timeout = 2500;
-                check_net.ReadWriteTimeout = 2500;
-                check_net.AllowAutoRedirect = false;
-                using (var resp_net = (HttpWebResponse)check_net.GetResponse()){
-                    return resp_net.StatusCode == HttpStatusCode.NoContent;
+                using (HttpClient client = new HttpClient()){
+                    client.Timeout = TimeSpan.FromSeconds(3);
+                    foreach (var url in urls){
+                        try{
+                            using (HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)){
+                                if (response.IsSuccessStatusCode)
+                                    return true;
+                            }
+                        }catch{ }
+                    }
                 }
-            }catch (WebException){
+            }catch{
                 return false;
             }
+            return false;
         }
         // DPI AWARE V2
         // ======================================================================================================
