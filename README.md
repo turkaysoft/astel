@@ -24,6 +24,7 @@ You can support this project by making a donation to help ensure its sustainabil
 * **Multilingual:** Fully supports 15+ languages including English, Turkish, German, and more.
 * **Portable:** No installation required. Simply extract and run to access your vault.
 * **Automatic Backup:** Encrypted backups are created at specified intervals to prevent any data loss.
+* **Built-in Update Mechanism:** It features a built-in smart update mechanism developed specifically by **Türkaysoft**.
 
 ---
 
