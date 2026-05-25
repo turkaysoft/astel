@@ -70,7 +70,7 @@ Astel goes beyond simple storage, offering tools to manage your digital identity
 1.  Navigate to the **[Releases](https://github.com/turkaysoft/astel/releases/latest)** page.
 2.  Download the latest ZIP file.
 3.  **Extract all files from the ZIP** (Important: Application requires all folder contents to run correctly).
-4.  Launch the executable:
+4.  Launch the executable corresponding to your architecture:
     * `Astel_x64.exe`: For standard 64-bit Intel/AMD systems.
     * `Astel_arm64.exe`: For ARM-based devices like Surface Pro.
 
