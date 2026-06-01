@@ -21,7 +21,7 @@ You can support this project by making a donation to help ensure its sustainabil
 * **Privacy First:** Your data stays on your machine; no information is transferred to external servers.
 * **Pure Performance:** Developed using only C# and .NET Framework with **zero external libraries** or dependencies.
 * **Modern UI:** Clean interface with Light, Dark, and System theme support for a seamless Windows experience.
-* **Multilingual:** Fully supports 15+ languages including English, Turkish, German, and more.
+* **Multilingual:** It supports 15 different languages, primarily English. You can access the supported languages here: [Supported Languages](https://github.com/turkaysoft/astel/discussions/3)
 * **Portable:** No installation required. Simply extract and run to access your vault.
 * **Automatic Backup:** Encrypted backups are created at specified intervals to prevent any data loss.
 * **Built-in Update Mechanism:** It features a built-in smart update mechanism developed specifically by **Türkaysoft**.
