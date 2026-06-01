@@ -26,6 +26,8 @@ You can support this project by making a donation to help ensure its sustainabil
 * **Auto-Clipboard Clear:** Copied passwords are automatically removed from the clipboard after 30 seconds, preventing accidental exposure through paste operations.
 * **Masked Password Display:** Password data is shown as masked characters (●) in tables, protecting against shoulder surfing and onlookers.
 * **Memory Security:** Sensitive data references are actively cleaned from memory using secure memory clearing methods, protecting against RAM analysis attacks.
+* **Advanced Password Generator:** Create complex, secure passwords tailored to your specific requirements.
+* **Flexible Data Transfer:** Easily export or import your vault data in both encrypted `*.astel` and standard `*.csv` formats.
 * **Automatic Backup:** Encrypted backups are created at specified intervals to prevent any data loss.
 * **Multilingual:** It supports 15 different languages, primarily English. You can access the supported languages here: [Supported Languages](https://github.com/turkaysoft/astel/discussions/3)
 * **Modern UI:** Clean, intuitive interface compatible with Windows 11 design language, featuring Light, Dark, and System themes.
@@ -40,16 +42,6 @@ You can support this project by making a donation to help ensure its sustainabil
 ## Password Generator
 
 <img width="586" height="533" alt="Astel Password Generator" src="https://github.com/user-attachments/assets/54ecb11a-fffd-40c2-ad66-337c7dc5623d" />
-
----
-
-## Advanced Capabilities
-
-Astel goes beyond simple storage, offering tools to manage your digital identity securely:
-
-* **Advanced Password Generator:** Create complex, secure passwords tailored to your specific requirements.
-* **Flexible Data Transfer:** Easily export or import your vault data in both encrypted `*.astel` and standard `*.csv` formats.
-* **Multi-Architecture Support:** Native compatibility for x64, x86, and ARM64 processor architectures.
 
 ---
 
