@@ -19,17 +19,16 @@ You can support this project by making a donation to help ensure its sustainabil
 ## Key Features
 
 * **Privacy First:** Your data stays on your machine; no information is transferred to external servers.
+* **Pure Performance:** Developed exclusively in **C# and .NET Framework** with no external libraries or dependencies.
 * **DPAPI Session Encryption:** Session information is encrypted using Windows Data Protection API (DPAPI), ensuring data can only be decrypted on the same user account and the same machine.
 * **Strong Brute-Force Protection:** Master passwords and sensitive data are secured using PBKDF2-HMAC-SHA512 with 210,000 iterations and a unique salt, making brute-force attacks extremely difficult.
 * **Cryptographically Secure Password Generator:** Uses `RandomNumberGenerator`, implements Rejection Sampling to eliminate modulo bias, and applies Fisher-Yates Shuffle for secure character randomization. Each generated password guarantees at least one uppercase letter, one lowercase letter, one digit, and one symbol, with a random length between 10-18 characters.
 * **Auto-Clipboard Clear:** Copied passwords are automatically removed from the clipboard after 30 seconds, preventing accidental exposure through paste operations.
 * **Masked Password Display:** Password data is shown as masked characters (●) in tables, protecting against shoulder surfing and onlookers.
 * **Memory Security:** Sensitive data references are actively cleaned from memory using secure memory clearing methods, protecting against RAM analysis attacks.
-* **Pure Performance:** Developed using only C# and .NET Framework with **zero external libraries** or dependencies.
-* **Modern UI:** Clean interface with Light, Dark, and System theme support for a seamless Windows experience.
-* **Multilingual:** It supports 15 different languages, primarily English. You can access the supported languages here: [Supported Languages](https://github.com/turkaysoft/astel/discussions/3)
-* **Portable:** No installation required. Simply extract and run to access your vault.
 * **Automatic Backup:** Encrypted backups are created at specified intervals to prevent any data loss.
+* **Multilingual:** It supports 15 different languages, primarily English. You can access the supported languages here: [Supported Languages](https://github.com/turkaysoft/astel/discussions/3)
+* **Modern UI:** Clean, intuitive interface compatible with Windows 11 design language, featuring Light, Dark, and System themes.
 * **Built-in Update Mechanism:** It features a built-in smart update mechanism developed specifically by **Türkaysoft**.
 
 ---
