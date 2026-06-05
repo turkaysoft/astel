@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Text;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 // TS MODULES
 using static Astel.TSModules;
 
@@ -11,7 +14,7 @@ namespace Astel.astel_modules{
         // ASTEL PASS GENERATOR CLASS
         // ======================================================================================================
         public class TS_AstelPasswordGenerator{
-            private readonly Random random_gen = new Random();
+            private readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
             private readonly Dictionary<string, (string upper, string lower, string digit, string special)> modes;
             public TS_AstelPasswordGenerator(){
                 modes = new Dictionary<string, (string, string, string, string)> {
@@ -23,13 +26,14 @@ namespace Astel.astel_modules{
             public string AstelGeneratePassword(bool includeUppercase, bool includeLowercase, bool includeNumeric, bool includeSpecialChars, string mode, int passwordLength){
                 var (upper, lower, digit, special) = modes[mode];
                 var charSet = new StringBuilder();
-                //
-                foreach (var (condition, chars) in new[]{
+                List<(bool condition, string chars)> categories = new List<(bool, string)>{
                     (includeUppercase, upper),
                     (includeLowercase, lower),
                     (includeNumeric, digit),
                     (includeSpecialChars, special)
-                }){
+                };
+                //
+                foreach (var (condition, chars) in categories){
                     if (condition) charSet.Append(chars);
                 }
                 //
@@ -38,11 +42,43 @@ namespace Astel.astel_modules{
                     throw new ArgumentException(lang.TSReadLangs("AstelPasswordGenerator", "apg_feature_info"));
                 }
                 //
-                var password = new StringBuilder();
-                for (int i = 0; i < passwordLength; i++){
-                    password.Append(charSet[random_gen.Next(charSet.Length)]);
+                var activeCategories = categories.Where(c => c.condition).Select(c => c.chars).ToList();
+                char[] passwordChars = new char[passwordLength];
+                int charsetSize = charSet.Length;
+                int rejectionThreshold = byte.MaxValue - (byte.MaxValue % charsetSize);
+                byte[] randomByteBuffer = new byte[1];
+                //
+                for (int i = 0; i < activeCategories.Count && i < passwordLength; i++){
+                    int catSize = activeCategories[i].Length;
+                    int catThreshold = byte.MaxValue - (byte.MaxValue % catSize);
+                    byte randomByte;
+                    do{
+                        _rng.GetBytes(randomByteBuffer);
+                        randomByte = randomByteBuffer[0];
+                    } while (randomByte >= catThreshold);
+                    passwordChars[i] = activeCategories[i][randomByte % catSize];
                 }
-                return password.ToString();
+                //
+                for (int i = activeCategories.Count; i < passwordLength; i++){
+                    byte randomByte;
+                    do{
+                        _rng.GetBytes(randomByteBuffer);
+                        randomByte = randomByteBuffer[0];
+                    } while (randomByte >= rejectionThreshold);
+                    passwordChars[i] = charSet[randomByte % charsetSize];
+                }
+                //
+                for (int i = passwordLength - 1; i > 0; i--){
+                    byte swapByte;
+                    do{
+                        _rng.GetBytes(randomByteBuffer);
+                        swapByte = randomByteBuffer[0];
+                    } while (swapByte >= byte.MaxValue - (byte.MaxValue % (i + 1)));
+                    int j = swapByte % (i + 1);
+                    (passwordChars[j], passwordChars[i]) = (passwordChars[i], passwordChars[j]);
+                }
+                //
+                return new string(passwordChars);
             }
         }
         // AUXILIARY METHODS
@@ -200,7 +236,15 @@ namespace Astel.astel_modules{
         // ======================================================================================================
         private void PassResultLabel_DoubleClick(object sender, EventArgs e){
             if (!string.IsNullOrWhiteSpace(PassResultLabel.Text)){
-                Clipboard.SetText(PassResultLabel.Text.Trim());
+                string copiedPassword = PassResultLabel.Text.Trim();
+                Clipboard.SetText(copiedPassword);
+                Task.Delay(30000).ContinueWith(_ =>{
+                    try{
+                        if (Clipboard.GetText() == copiedPassword){
+                            Clipboard.Clear();
+                        }
+                    }catch{ }
+                }, TaskScheduler.FromCurrentSynchronizationContext());
                 TSGetLangs lang = new TSGetLangs(AstelMain.lang_path);
                 TS_MessageBoxEngine.TS_MessageBox(this, 1, lang.TSReadLangs("AstelPasswordGenerator", "apg_copy_password"));
             }

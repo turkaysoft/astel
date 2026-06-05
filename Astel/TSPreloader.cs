@@ -22,7 +22,7 @@ namespace Astel{
             //
             LabelDeveloper.Text = Application.CompanyName;
             LabelSoftware.Text = Application.ProductName;
-            LabelVersion.Text = TS_VersionEngine.TS_SofwareVersion(1);
+            LabelVersion.Text = TS_VersionEngine.TS_SoftwareVersion(1);
             LabelCopyright.Text = TS_SoftwareCopyrightDate.ts_scd_preloader;
             //
             PanelImg.Padding = new Padding(0, 0, 0, 0);
@@ -157,6 +157,16 @@ namespace Astel{
             ---------------------------
             1 = On
             0 = Off
+
+            -- PasswordMask
+            ---------------------------
+            1 = On
+            0 = Off
+
+            -- LoginPassVisible
+            ---------------------------
+            1 = On
+            0 = Off
         */
         private IEnumerable<(string Key, Func<string> ValueFactory)> GetDefaultSettings(string uiLang){
             // GLOBAL
@@ -166,6 +176,9 @@ namespace Astel{
             // APPLICATION SPECIFIC
             yield return ("AutoBackupStatus", () => "1");
             yield return ("SafetyWarnings", () => "1");
+            yield return ("PasswordMask", () => "1");
+            // APPLICATION LOGIN
+            yield return ("LoginPassVisible", () => "0");
         }
         // PRELOAD ALERT
         // ======================================================================================================
@@ -278,10 +291,17 @@ namespace Astel{
             if (IsDisposed || !IsHandleCreated){
                 return;
             }
-            // DYNAMIC STARTUP
             string bootstrap_mode = new TSSettingsModule(ts_session_file).TSReadSettings(ts_session_container, "SessionMode");
-            (bootstrap_mode == "1" ? (Form)new AstelLogin() : new AstelSignIn()).Show();
-            Hide();
+            Form targetForm = (bootstrap_mode == "1") ? (Form)new AstelLogin() : new AstelSignIn();
+            targetForm.FormClosed += (s, args) => {
+                Application.Exit();
+            };
+            targetForm.Show();
+            BeginInvoke(new Action(() => {
+                if (!IsDisposed && IsHandleCreated){
+                    Hide();
+                }
+            }));
         }
     }
 }

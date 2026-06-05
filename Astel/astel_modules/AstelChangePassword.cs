@@ -137,7 +137,7 @@ namespace Astel.astel_modules{
                         if (!FixedTimeStringEquals(hashed_current, saved_password)){
                             return false;
                         }
-                        string new_salt = GenerateSalt(16);
+                        string new_salt = GenerateSalt(32);
                         string new_hashed = TSHashPassword(password_new, new_salt, 210000);
                         string protected_new_salt = TS_SessionProtection.ProtectSessionData(new_salt);
                         string protected_new_hash = TS_SessionProtection.ProtectSessionData(new_hashed);

@@ -473,6 +473,26 @@ namespace Astel.Properties {
         /// <summary>
         ///   System.Drawing.Bitmap türünde yerelleştirilmiş bir kaynak arar.
         /// </summary>
+        internal static System.Drawing.Bitmap tm_password_mask_dark {
+            get {
+                object obj = ResourceManager.GetObject("tm_password_mask_dark", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Drawing.Bitmap türünde yerelleştirilmiş bir kaynak arar.
+        /// </summary>
+        internal static System.Drawing.Bitmap tm_password_mask_light {
+            get {
+                object obj = ResourceManager.GetObject("tm_password_mask_light", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Drawing.Bitmap türünde yerelleştirilmiş bir kaynak arar.
+        /// </summary>
         internal static System.Drawing.Bitmap tm_safety_warnings_dark {
             get {
                 object obj = ResourceManager.GetObject("tm_safety_warnings_dark", resourceCulture);

@@ -122,7 +122,7 @@ namespace Astel.astel_modules{
             //
             bool set_password_status = await Task.Run(() =>{
                 try{
-                    string salt = GenerateSalt(16);
+                    string salt = GenerateSalt(32);
                     string hashed_password = TSHashPassword(password_1, salt, 210000);
                     string crossLinker = GenerateSecureRandomString(32);
                     TSSettingsModule software_setting_save = new TSSettingsModule(ts_session_file);

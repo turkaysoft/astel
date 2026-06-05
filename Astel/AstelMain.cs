@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,16 +74,25 @@ namespace Astel{
             turkishToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             //
             SystemEvents.UserPreferenceChanged += (s, e) => TSUseSystemTheme();
+            //
+            CmbService.MouseWheel += CmbService_MouseWheel;
         }
         // GLOBAL VARIABLES
         // ======================================================================================================
         public static string lang, lang_path;
-        public static int theme, themeSystem, startup_status, auto_backup_status, safety_warnings_status;
+        public static int theme, themeSystem, startup_status, auto_backup_status, safety_warnings_status, password_mask_status;
         // LOCAL VARIABLES
         // ======================================================================================================
         Task auto_backup;
         private CancellationTokenSource cts;
         private bool suppressComboBoxEvent = false;
+        private bool _isFirstKeyNavigation = true;
+        // ORIGINAL VALUES FOR UPDATE CHANGE DETECTION
+        private string _originalService = "";
+        private string _originalEmail = "";
+        private string _originalPassword = "";
+        private string _originalUrl = "";
+        private string _originalNote = "";
         // UI COLORS
         // ======================================================================================================
         static readonly List<Color> header_colors = new List<Color>() { Color.Transparent, Color.Transparent, Color.Transparent };
@@ -193,19 +203,24 @@ namespace Astel{
             safety_warnings_status = int.TryParse(safety_mode, out int safetywar_status) && (safetywar_status == 0 || safetywar_status == 1) ? safetywar_status : 0;
             safetyWarningsOnToolStripMenuItem.Checked = safety_warnings_status == 1;
             safetyWarningsOffToolStripMenuItem.Checked = safety_warnings_status == 0;
+            //
+            string password_mask_mode = software_read_settings.TSReadSettings(ts_settings_container, "PasswordMask");
+            password_mask_status = int.TryParse(password_mask_mode, out int pass_mask_status) && (pass_mask_status == 0 || pass_mask_status == 1) ? pass_mask_status : 1;
+            PMaskActiveToolStripMenuItem.Checked = password_mask_status == 1;
+            PMaskDisabledToolStripMenuItem.Checked = password_mask_status == 0;
         }
         // MAIN TOOLTIP SETTINGS
         // ======================================================================================================
         private void MainToolTip_Draw(object sender, DrawToolTipEventArgs e){ e.DrawBackground(); e.DrawBorder(); e.DrawText(); }
         // LOAD
         // ======================================================================================================
-        private async void Astel_Load(object sender, EventArgs e){
+        private async void Astel_Load(object sender, EventArgs e){ 
             // PREFETCH
             ServiceListAdd();
             RunSoftwareEngine();
             //
             TSGetLangs software_lang = new TSGetLangs(lang_path);
-            Text = TS_VersionEngine.TS_SofwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
+            Text = TS_VersionEngine.TS_SoftwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
             HeaderMenu.Cursor = Cursors.Hand;
             // TEMPORARY COLUMN CLEAR
             DataMainTable.Columns.Clear();
@@ -214,8 +229,9 @@ namespace Astel{
             // LOAD
             AstelLoadXMLData();
             DGVColumnFormatter();
+            DataMainTable.ClearSelection();
             //
-            Text = TS_VersionEngine.TS_SofwareVersion(0);
+            Text = TS_VersionEngine.TS_SoftwareVersion(0);
             //
             DataMainTable.Columns[0].Width = (int)(50 * this.DeviceDpi / 96f);
             DataMainTable.Columns[1].Width = (int)(100 * this.DeviceDpi / 96f);
@@ -228,6 +244,11 @@ namespace Astel{
                 int scaledPadding = (int)(3 * this.DeviceDpi / 96f);
                 columnPadding.DefaultCellStyle.Padding = new Padding(scaledPadding, 0, 0, 0);
             }
+            // EVENT: KEY NAVIGATION FOR TABLE
+            DataMainTable.KeyDown += DataMainTable_KeyDown;
+            // ENABLE FORM-LEVEL KEY PREVIEW FOR ARROW NAVIGATION
+            this.KeyPreview = true;
+            this.KeyDown += AstelMain_KeyDown;
             // RUN TASKS
             Task softwareUpdateCheck = Task.Run(() => Software_update_check(0));
             if (auto_backup_status == 1 && (auto_backup == null || auto_backup.IsCompleted)){
@@ -241,52 +262,45 @@ namespace Astel{
             string[] globalServices = new string[]{
                 "-",
                 // Social / Communication
-                "Facebook", "Instagram", "Threads", "Twitter (X)", "LinkedIn", "Reddit",
-                "Pinterest", "Quora", "Medium", "TikTok", "Snapchat",
-                "WhatsApp", "Telegram", "Signal", "Viber", "WeChat", "LINE",
-                "Discord", "Slack",
+                "Facebook", "Instagram", "X (Twitter)", "LinkedIn", "TikTok", "Snapchat",
+                "Pinterest", "Reddit", "WhatsApp", "Telegram", "Signal", "Discord", "Slack",
                 // Entertainment / Media
-                "Netflix", "Spotify", "Disney+", "HBO Max", "Paramount+", "Peacock",
-                "Twitch", "Kick", "SoundCloud", "Deezer", "Crunchyroll",
+                "Netflix", "Spotify", "Disney+", "Prime Video", "HBO Max", "Twitch", "Kick", "Crunchyroll",
                 // Game
-                "Steam", "Epic Games", "Roblox", "PlayStation Network", "Battle.net", "Ubisoft", "EA Play",
-                // Shopping / Finance (Global)
-                "Amazon", "eBay", "Etsy", "Shopify",
-                "PayPal", "Stripe", "Venmo", "Wise", "Revolut",
-                // Productivity / Cloud – Primary Identities
-                "Google", "Apple", "Microsoft", "Samsung", "Xiaomi",
-                // Independent Cloud / Productivity
-                "Dropbox", "MEGA", "Notion", "Trello", "Asana", "ClickUp",
-                "Monday.com", "Miro", "Zoom",
+                "Steam", "Epic Games", "PlayStation Network", "Battle.net", "Roblox", "Riot Games", "Ubisoft Connect",
+                // Shopping / Finance
+                "Amazon", "eBay", "Shopify", "AliExpress", "Temu",
+                "PayPal", "Wise", "Revolut", "Binance", "Coinbase",
+                // Artificial Intelligence (AI) / Data
+                "OpenAI (ChatGPT)", "Anthropic (Claude)", "Midjourney", "Hugging Face", "Perplexity", "ElevenLabs", "DeepSeek", "DeepL",
+                // Productivity / Cloud / Main Accounts
+                "Google", "Apple", "Microsoft", "Yahoo",
+                "Dropbox", "Notion", "Canva",
                 // Developer
-                "GitHub", "GitLab", "Bitbucket", "Stack Overflow",
-                // Travel / Transportation (Global)
-                "Uber", "Bolt", "Airbnb"
+                "GitHub", "GitLab", "Stack Overflow", "Docker",
+                // Travel
+                "Uber", "Airbnb", "Booking.com"
             };
             string[] turkeyServices = new string[]{
-                // Turkey – E-Commerce / Service
-                "Trendyol", "Hepsiburada", "n11", "Yemeksepeti", "Getir", "Migros Hemen",
-                "BİM Online", "A101 Kapıda",
-                "Sahibinden", "Letgo", "PTT", "PTTAVM",
-                // Turkey – Transportation / Tickets
-                "Biletix", "Passo", "Obilet", "TCDD",
-                "THY", "Pegasus", "AJet", "SunExpress",
-                "İSPARK",
-                // Turkey – Finance / Banks
-                "Ziraat Bankası", "Ziraat Katılım", "İş Bankası", "Garanti BBVA", "Yapı Kredi",
-                "Akbank", "QNB Finansbank", "DenizBank", "TEB", "ING Bank", "Halkbank",
-                "VakıfBank", "Şekerbank", "AnadoluBank", "Fibabanka", "Burgan Bank",
-                "Odeabank", "Alternatif Bank", "HSBC Türkiye",
-                "Kuveyt Türk", "Albaraka Türk", "Türkiye Finans",
-                "Papara", "Enpara", "İninal", "Paycell",
-                // Turkey – Government / Operator
-                "E-Devlet", "E-Nabız", "MHRS",
-                "Turkcell", "Vodafone", "Türk Telekom",
-                "İstanbulkart"
+                // Turkey - E-Commerce / Delivery
+                "Trendyol", "Hepsiburada", "n11", "Pazarama", "Sahibinden", "Dolap", "Gardrops",
+                "Yemeksepeti", "Getir", "Migros",
+                // Turkey - Transportation / Travel
+                "Obilet", "TCDD", "THY", "Pegasus", "AJet", "Enuygun",
+                // Turkey - Finance / Banks
+                "Ziraat Bankası", "İş Bankası", "Garanti BBVA", "Yapı Kredi",
+                "Akbank", "QNB", "DenizBank", "Halkbank", "VakıfBank",
+                "Papara", "Enpara", "Midas",
+                // Turkey - Government / Education
+                "E-Devlet", "E-Nabız", "MHRS", "ÖSYM", "MEB (E-Okul)",
+                // Turkey - Operators / Local
+                "Turkcell", "Vodafone", "Türk Telekom", "Türknet", "İstanbulkart", "Exxen"
             };
             var services_main = new List<string>(globalServices);
             var get_region = new RegionInfo(CultureInfo.CurrentCulture.LCID);
-            if (get_region.TwoLetterISORegionName == "TR"){ services_main.AddRange(turkeyServices); }
+            if (get_region.TwoLetterISORegionName == "TR"){
+                services_main.AddRange(turkeyServices);
+            }
             string[] content_services = services_main.ToArray();
             Array.Sort(content_services, StringComparer.CurrentCultureIgnoreCase);
             CmbService.Items.Clear();
@@ -340,7 +354,7 @@ namespace Astel{
             TSGetLangs software_lang = new TSGetLangs(lang_path);
             var ts_xDoc = await InitializeAESAsync();
             var root = ts_xDoc.Element("Datas");
-            root.SetAttributeValue("SV", TS_VersionEngine.TS_SofwareVersion(1));
+            root.SetAttributeValue("SV", TS_VersionEngine.TS_SoftwareVersion(1));
             string saved_crossLinker64 = software_read_settings.TSReadSettings(ts_session_container, "CrossLinker").Trim();
             string crossLinker64 = root.Attribute("CL")?.Value.Trim();
             if (!string.IsNullOrEmpty(crossLinker64)){
@@ -376,7 +390,7 @@ namespace Astel{
             // UPDATE FILE SV VERSION
             if (ts_xDoc_root != null){
                 string currentVersion = ts_xDoc_root.Attribute("SV")?.Value ?? string.Empty;
-                string newVersion = TS_VersionEngine.TS_SofwareVersion(1);
+                string newVersion = TS_VersionEngine.TS_SoftwareVersion(1);
                 if (currentVersion != newVersion){
                     ts_xDoc_root.SetAttributeValue("SV", newVersion);
                     ts_xDoc.Save(ts_data_xml_path);
@@ -407,7 +421,14 @@ namespace Astel{
             }
             ts_dataSet.Tables.Add(ts_dataTable);
             DataMainTable.DataSource = ts_dataSet.Tables[0];
-            DataMainTable.ClearSelection();
+            DataMainTable.CellFormatting += (s, e) => {
+                if (e.ColumnIndex == 3 && e.Value != null && e.Value is string pwd && pwd != ""){
+                    if (password_mask_status == 1){
+                        e.Value = new string('●', Math.Min(pwd.Length, 20));
+                        e.FormattingApplied = true;
+                    }
+                }
+            };
         }
         // SECURE ID GENERATOR & REORDER ID
         // ======================================================================================================
@@ -440,17 +461,19 @@ namespace Astel{
         // ======================================================================================================
         private async void AddBtn_Click(object sender, EventArgs e){
             await ProgressData(false);
+            DataMainTable.Focus();
         }
         // UPDATE DATA
         // ======================================================================================================
         private async void UpdateBtn_Click(object sender, EventArgs e){
             await ProgressData(true);
+            DataMainTable.Focus();
         }
         // VALIDATE AND PROGRESS FUNCTIONS
         // ======================================================================================================
         private bool ValidateInputs(out string in_service, out string in_email, out string in_password, out string in_url, out string in_note, out string errorMsg){
             TSGetLangs software_lang = new TSGetLangs(lang_path);
-            in_service = string.Join(" ", TxtService.Text.Split(' ').Select(k => string.IsNullOrWhiteSpace(k) ? "" : char.ToUpper(k[0]) + k.Substring(1).ToLower()));
+            in_service = FormatServiceName(TxtService.Text);
             in_email = TxtEmail.Text.Trim();
             in_password = TxtPassword.Text.Trim();
             in_url = TxtUrl.Text.Trim();
@@ -511,7 +534,21 @@ namespace Astel{
                     return;
                 }
                 if (isUpdate){
-                    var confirm = TS_MessageBoxEngine.TS_MessageBox(this, 4, software_lang.TSReadLangs("AstelHome", "ah_update_question_info"));
+                    // CHECK IF ANY DATA HAS CHANGED
+                    string currentService = FormatServiceName(TxtService.Text);
+                    string currentEmail = TxtEmail.Text.Trim();
+                    string currentPassword = TxtPassword.Text.Trim();
+                    string currentUrl = TxtUrl.Text.Trim();
+                    string currentNote = TxtNote.Text.Trim();
+                    if (currentService == _originalService &&
+                        currentEmail == _originalEmail &&
+                        currentPassword == _originalPassword &&
+                        currentUrl == _originalUrl &&
+                        currentNote == _originalNote){
+                        TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", "ah_update_no_changes"));
+                        return;
+                    }
+                    var confirm = TS_MessageBoxEngine.TS_MessageBox(this, 4, string.Format(software_lang.TSReadLangs("AstelHome", "ah_update_question_info"), DataMainTable.SelectedRows[0].Cells["Service"].Value?.ToString() ?? ""));
                     if (confirm != DialogResult.Yes)
                         return;
                 }
@@ -548,6 +585,9 @@ namespace Astel{
                 ts_xDoc.Save(ts_data_xml_path);
                 AstelLoadXMLData();
                 NodeClearInput();
+                _isFirstKeyNavigation = true;
+                DataMainTable.Focus();
+                DataMainTable.ClearSelection();
                 //
                 TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", isUpdate ? "ah_update_success" : "ah_add_success"));
             }catch (Exception){
@@ -564,7 +604,9 @@ namespace Astel{
                     return;
                 }
                 //
-                DialogResult checkDeleteQuery = TS_MessageBoxEngine.TS_MessageBox(this, 4, software_lang.TSReadLangs("AstelHome", "ah_delete_question_info"));
+                string selectedService = DataMainTable.SelectedRows[0].Cells["Service"].Value?.ToString() ?? "";
+                string deleteMsg = string.Format(software_lang.TSReadLangs("AstelHome", "ah_delete_question_info"), selectedService);
+                DialogResult checkDeleteQuery = TS_MessageBoxEngine.TS_MessageBox(this, 4, deleteMsg);
                 if (checkDeleteQuery == DialogResult.Yes){
                     var ts_xDoc = XDocument.Load(ts_data_xml_path);
                     var ts_xml_root = ts_xDoc.Element("Datas");
@@ -576,30 +618,49 @@ namespace Astel{
                     //
                     TSReorderID(ts_xDoc);
                     ts_xDoc.Save(ts_data_xml_path);
-                    AstelLoadXMLData();
+                                        AstelLoadXMLData();
                     NodeClearInput();
+                    _isFirstKeyNavigation = true;
                     //
                     TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", "ah_delete_success"));
                 }
+                DataMainTable.Focus();
             }catch (Exception){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("AstelHome", "ah_delete_failed"), "\n"));
             }
         }
-        // COPY DATA
+        // CLEAR INPUT (Memory Safe)
+        // ======================================================================================================
+        private void NodeClearInput(){
+            ClearSecureTextBox(TxtService);
+            ClearSecureTextBox(TxtPassword);
+            ClearSecureTextBox(TxtEmail);
+            ClearSecureTextBox(TxtUrl);
+            ClearSecureTextBox(TxtNote);
+        }
+        private static void ClearSecureTextBox(TextBox tb){
+            if (tb == null || string.IsNullOrEmpty(tb.Text)) return;
+            tb.Text = string.Empty;
+        }
+        // COPY DATA (with clipboard auto-clear + memory cleanup)
         // ======================================================================================================
         private void BtnCopyEmail_Click(object sender, EventArgs e){
             try{
-                if (!string.IsNullOrEmpty(TxtEmail.Text.Trim())){
-                    Clipboard.SetText(TxtEmail.Text.Trim());
+                string copiedText = TxtEmail.Text.Trim();
+                if (!string.IsNullOrEmpty(copiedText)){
+                    Clipboard.SetText(copiedText);
+                    ScheduleClipboardClear(copiedText);
                     TSGetLangs software_lang = new TSGetLangs(lang_path);
                     TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", "ah_copy_email"));
                 }
             }catch (Exception){ }
         }
-        private void BtnCopyPassword_Click(object sender, EventArgs e){
+       private void BtnCopyPassword_Click(object sender, EventArgs e){
             try{
-                if (!string.IsNullOrEmpty(TxtPassword.Text.Trim())){
-                    Clipboard.SetText(TxtPassword.Text.Trim());
+                string copiedText = TxtPassword.Text.Trim();
+                if (!string.IsNullOrEmpty(copiedText)){
+                    Clipboard.SetText(copiedText);
+                    ScheduleClipboardClear(copiedText);
                     TSGetLangs software_lang = new TSGetLangs(lang_path);
                     TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", "ah_copy_password"));
                 }
@@ -607,16 +668,28 @@ namespace Astel{
         }
         private void BtnCopyUrl_Click(object sender, EventArgs e){
             try{
-                if (!string.IsNullOrEmpty(TxtUrl.Text.Trim())){
-                    Clipboard.SetText(TxtUrl.Text.Trim());
+                string copiedText = TxtUrl.Text.Trim();
+                if (!string.IsNullOrEmpty(copiedText)){
+                    Clipboard.SetText(copiedText);
+                    ScheduleClipboardClear(copiedText);
                     TSGetLangs software_lang = new TSGetLangs(lang_path);
                     TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", "ah_copy_url"));
                 }
             }catch (Exception){ }
         }
-        // RANDOM PASSWORD GENERATOR
+        private static void ScheduleClipboardClear(string copiedText){
+            string captured = copiedText;
+            Task.Delay(30000).ContinueWith(_ => {
+                try{
+                    if (Clipboard.GetText() == captured){
+                        Clipboard.Clear();
+                    }
+                }catch { }
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+        // RANDOM PASSWORD GENERATOR (Cryptographically Secure)
         // ======================================================================================================
-        private readonly Random rnd_pass = new Random();
+        private readonly RandomNumberGenerator _secureRng = RandomNumberGenerator.Create();
         private void BtnRndPssGen_Click(object sender, EventArgs e){
             GenerateRandomPassword();
         }
@@ -625,21 +698,39 @@ namespace Astel{
             string lower = "abcdefghijklmnopqrstuvwxyz";
             string digits = "0123456789";
             string symbols = "!@#$%^&*()-_=+[]{}|;:,.<>?";
-            var initialChars = new[] {
-                upper[rnd_pass.Next(upper.Length)],
-                lower[rnd_pass.Next(lower.Length)],
-                digits[rnd_pass.Next(digits.Length)],
-                symbols[rnd_pass.Next(symbols.Length)]
-            }.ToList();
             string allChars = upper + lower + digits + symbols;
-            initialChars.AddRange(Enumerable.Range(0, rnd_pass.Next(10, 18) - initialChars.Count).Select(_ => allChars[rnd_pass.Next(allChars.Length)]));
-            for (int i = initialChars.Count - 1; i > 0; i--){
-                int j = rnd_pass.Next(i + 1);
-                (initialChars[j], initialChars[i]) = (initialChars[i], initialChars[j]);
+            int allCharsSize = allChars.Length;
+            int allRejectionThreshold = byte.MaxValue - (byte.MaxValue % allCharsSize);
+            int passLength;
+            byte[] buffer = new byte[1];
+            do { _secureRng.GetBytes(buffer); } while (buffer[0] >= byte.MaxValue - (byte.MaxValue % 9));
+            passLength = 10 + (buffer[0] % 9);
+            var chars = new char[passLength];
+            (string category, int index)[] categories = new[] {
+                (upper, 0), (lower, 1), (digits, 2), (symbols, 3)
+            };
+            foreach (var (cat, idx) in categories){
+                int catSize = cat.Length;
+                int catThreshold = byte.MaxValue - (byte.MaxValue % catSize);
+                byte catByte;
+                do { _secureRng.GetBytes(buffer); catByte = buffer[0]; } while (catByte >= catThreshold);
+                chars[idx] = cat[catByte % catSize];
             }
-            TxtPassword.Text = new string(initialChars.ToArray());
+            for (int i = categories.Length; i < passLength; i++){
+                byte randByte;
+                do { _secureRng.GetBytes(buffer); randByte = buffer[0]; } while (randByte >= allRejectionThreshold);
+                chars[i] = allChars[randByte % allCharsSize];
+            }
+            for (int i = passLength - 1; i > 0; i--){
+                byte swapByte;
+                do { _secureRng.GetBytes(buffer); swapByte = buffer[0]; } while (swapByte >= byte.MaxValue - (byte.MaxValue % (i + 1)));
+                int j = swapByte % (i + 1);
+                (chars[j], chars[i]) = (chars[i], chars[j]);
+            }
+            TxtPassword.Text = new string(chars);
         }
         // OPEN URL TO BROWSER
+        // ======================================================================================================
         private void BtnOpenUrl_Click(object sender, EventArgs e){
             try{
                 if (!string.IsNullOrEmpty(TxtUrl.Text.Trim())){
@@ -652,17 +743,78 @@ namespace Astel{
         private void DataMainTable_CellClick(object sender, DataGridViewCellEventArgs e){
             try{
                 if (e.RowIndex >= 0){
-                    DataGridViewRow xml_select_row = DataMainTable.Rows[e.RowIndex];
-                    //
-                    TxtService.Text = xml_select_row.Cells[1].Value.ToString();
-                    TxtEmail.Text = xml_select_row.Cells[2].Value.ToString();
-                    TxtPassword.Text = xml_select_row.Cells[3].Value.ToString();
-                    TxtUrl.Text = xml_select_row.Cells[4].Value.ToString();
-                    TxtNote.Text = xml_select_row.Cells[5].Value.ToString();
+                    _isFirstKeyNavigation = false;
+                    LoadSelectedRowData(e.RowIndex);
                 }
             }catch (Exception){
                 TSGetLangs software_lang = new TSGetLangs(lang_path);
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("AstelHome", "ah_select_failed"), "\n"));
+            }
+        }
+        // LOAD SELECTED ROW DATA TO TEXTBOXES
+        // ======================================================================================================
+        private void LoadSelectedRowData(int rowIndex)
+        {
+            if (rowIndex < 0 || rowIndex >= DataMainTable.Rows.Count) return;
+            DataGridViewRow xml_select_row = DataMainTable.Rows[rowIndex];
+            TxtService.Text = xml_select_row.Cells[1].Value.ToString();
+            TxtEmail.Text = xml_select_row.Cells[2].Value.ToString();
+            TxtPassword.Text = xml_select_row.Cells[3].Value.ToString();
+            TxtUrl.Text = xml_select_row.Cells[4].Value.ToString();
+            TxtNote.Text = xml_select_row.Cells[5].Value.ToString();
+            // STORE ORIGINAL VALUES FOR CHANGE DETECTION
+            _originalService = FormatServiceName(TxtService.Text);
+            _originalEmail = TxtEmail.Text.Trim();
+            _originalPassword = TxtPassword.Text.Trim();
+            _originalUrl = TxtUrl.Text.Trim();
+            _originalNote = TxtNote.Text.Trim();
+        }
+        // FORMAT SERVICE NAME (CAPITALIZE FIRST LETTER OF EACH WORD)
+        // ======================================================================================================
+        private string FormatServiceName(string service){
+            return string.Join(" ", service.Split(' ').Select(k => string.IsNullOrWhiteSpace(k) ? "" : char.ToUpper(k[0]) + k.Substring(1).ToLower()));
+        }
+        // FORM-LEVEL KEY DOWN
+        // ======================================================================================================
+        private void AstelMain_KeyDown(object sender, KeyEventArgs e){
+            if ((e.KeyCode == Keys.Up || e.KeyCode == Keys.Down) && !DataMainTable.Focused){
+                e.Handled = true;
+                DataMainTable.Focus();
+                DataMainTable_KeyDown(DataMainTable, e);
+            }
+        }
+        // KEY NAVIGATION FOR TABLE (UP/DOWN ARROW with WRAP)
+        // ======================================================================================================
+        private void DataMainTable_KeyDown(object sender, KeyEventArgs e){
+            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down){
+                e.Handled = true;
+                int rowCount = DataMainTable.Rows.Count;
+                if (rowCount == 0) return;
+                if (_isFirstKeyNavigation){
+                    _isFirstKeyNavigation = false;
+                    DataMainTable.ClearSelection();
+                    DataMainTable.Rows[0].Selected = true;
+                    DataMainTable.CurrentCell = DataMainTable.Rows[0].Cells[0];
+                    LoadSelectedRowData(0);
+                    return;
+                }
+                int currentIndex = (DataMainTable.CurrentCell != null) ? DataMainTable.CurrentCell.RowIndex : -1;
+                if (currentIndex < 0){
+                    DataMainTable.Rows[0].Selected = true;
+                    DataMainTable.CurrentCell = DataMainTable.Rows[0].Cells[0];
+                    LoadSelectedRowData(0);
+                    return;
+                }
+                int newIndex;
+                if (e.KeyCode == Keys.Down){
+                    newIndex = (currentIndex + 1) % rowCount;
+                }else{
+                    newIndex = (currentIndex - 1 + rowCount) % rowCount;
+                }
+                DataMainTable.ClearSelection();
+                DataMainTable.Rows[newIndex].Selected = true;
+                DataMainTable.CurrentCell = DataMainTable.Rows[newIndex].Cells[0];
+                LoadSelectedRowData(newIndex);
             }
         }
         // CMB SELECT CHANGE
@@ -674,6 +826,10 @@ namespace Astel{
             }else{
                 TxtService.Clear();
             }
+            this.ActiveControl = null;
+        }
+        private void CmbService_MouseWheel(object sender, MouseEventArgs e){
+            ((HandledMouseEventArgs)e).Handled = true;
         }
         // TXT SERVICE SELECT CHANGE
         // ======================================================================================================
@@ -717,48 +873,59 @@ namespace Astel{
             }
             return d[a.Length, b.Length];
         }
-        // CLEAR INPUT
-        // ======================================================================================================
-        private void NodeClearInput(){
-            TxtService.Clear();
-            TxtPassword.Clear();
-            TxtEmail.Clear();
-            TxtUrl.Clear();
-            TxtNote.Clear();
-            DataMainTable.ClearSelection();
-        }
         // ======================================================================================================
         // AUTO BACKUP DATA
+        private const int MaxBackupFiles = 30;
+        private readonly SemaphoreSlim _backupLock = new SemaphoreSlim(1, 1);
         private async Task StartAutoBackup(CancellationToken token){
             while (!token.IsCancellationRequested){
                 if (DataMainTable.Rows.Count > 0){
-                    var backupFiles = Directory.Exists(ts_data_backup_folder) ? new DirectoryInfo(ts_data_backup_folder).GetFiles() : Array.Empty<FileInfo>();
-                    bool shouldBackup = false;
-                    if (backupFiles.Length == 0){
-                        shouldBackup = true;
-                    }else{
-                        var lastBackupFile = backupFiles.OrderByDescending(f => f.CreationTime).First();
-                        TimeSpan timeSinceLastBackup = DateTime.Now - lastBackupFile.CreationTime;
-                        if (timeSinceLastBackup.TotalMinutes >= 60){
+                    try{
+                        await Task.Delay(500, token);
+                        if (token.IsCancellationRequested) break;
+                        var backupFiles = Directory.Exists(ts_data_backup_folder) ? new DirectoryInfo(ts_data_backup_folder).GetFiles() : Array.Empty<FileInfo>();
+                        bool shouldBackup = false;
+                        if (backupFiles.Length == 0){
                             shouldBackup = true;
+                        }else{
+                            var lastBackupFile = backupFiles.OrderByDescending(f => f.CreationTime).First();
+                            TimeSpan timeSinceLastBackup = DateTime.Now - lastBackupFile.CreationTime;
+                            if (timeSinceLastBackup.TotalMinutes >= 60){
+                                shouldBackup = true;
+                            }
+                        }
+                        if (shouldBackup){
+                            await _backupLock.WaitAsync(token);
+                            try{
+                                if (!Directory.Exists(ts_data_backup_folder)){
+                                    Directory.CreateDirectory(ts_data_backup_folder);
+                                }
+                                string backupFileName = $"{Path.GetFileNameWithoutExtension(ts_data_xml_path)}_{DateTime.Now:ddMMyyyy_HHmmss}_{GenerateSecureRandomString(7).Substring(3)}{ts_data_backup_extension_astel}";
+                                string backupFilePath = Path.Combine(ts_data_backup_folder, backupFileName);
+                                File.Copy(ts_data_xml_path, backupFilePath, overwrite: false);
+                                var allBackups = new DirectoryInfo(ts_data_backup_folder).GetFiles().OrderByDescending(f => f.CreationTime).ToList();
+                                if (allBackups.Count > MaxBackupFiles){
+                                    foreach (var oldFile in allBackups.Skip(MaxBackupFiles)){
+                                        try{
+                                            oldFile.Delete();
+                                        }catch{ }
+                                    }
+                                }
+                            }
+                            finally{
+                                _backupLock.Release();
+                            }
                         }
                     }
-                    if (shouldBackup){
-                        string backupFileName = $"{Path.GetFileNameWithoutExtension(ts_data_xml_path)}_{DateTime.Now:ddMMyyyy_HHmm}_{GenerateSecureRandomString(7).Substring(3)}{ts_data_backup_extension_astel}";
-                        string backupFilePath = Path.Combine(ts_data_backup_folder, backupFileName);
-                        try{
-                            if (!Directory.Exists(ts_data_backup_folder)){
-                                Directory.CreateDirectory(ts_data_backup_folder);
-                            }
-                            File.Copy(ts_data_xml_path, backupFilePath, overwrite: true);
-                        }catch (Exception){ }
+                    catch (OperationCanceledException) { break; }
+                    catch (Exception ex){
+                        Debug.WriteLine(ex, "AutoBackup");
                     }
                 }
                 try{
                     await Task.Delay(60000, token);
-                }catch (TaskCanceledException){
-                    break;
                 }
+                catch (TaskCanceledException) { break; }
             }
         }
         // ======================================================================================================
@@ -815,6 +982,7 @@ namespace Astel{
                     TSImageRenderer(importDataToolStripMenuItem, Properties.Resources.tm_data_import_light, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(autoDataBackupToolStripMenuItem, Properties.Resources.tm_auto_backup_light, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(safetyWarningsToolStripMenuItem, Properties.Resources.tm_safety_warnings_light, 0, ContentAlignment.MiddleRight);
+                    TSImageRenderer(PassMaskStatusToolStripMenuItem, Properties.Resources.tm_password_mask_light, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(passwordGeneratorToolStripMenuItem, Properties.Resources.tm_password_generator_light, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(donateToolStripMenuItem, Properties.Resources.tm_donate_light, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(aboutToolStripMenuItem, Properties.Resources.tm_about_light, 0, ContentAlignment.MiddleRight);
@@ -840,6 +1008,7 @@ namespace Astel{
                     TSImageRenderer(importDataToolStripMenuItem, Properties.Resources.tm_data_import_dark, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(autoDataBackupToolStripMenuItem, Properties.Resources.tm_auto_backup_dark, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(safetyWarningsToolStripMenuItem, Properties.Resources.tm_safety_warnings_dark, 0, ContentAlignment.MiddleRight);
+                    TSImageRenderer(PassMaskStatusToolStripMenuItem, Properties.Resources.tm_password_mask_dark, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(passwordGeneratorToolStripMenuItem, Properties.Resources.tm_password_generator_dark, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(donateToolStripMenuItem, Properties.Resources.tm_donate_dark, 0, ContentAlignment.MiddleRight);
                     TSImageRenderer(aboutToolStripMenuItem, Properties.Resources.tm_about_dark, 0, ContentAlignment.MiddleRight);
@@ -1032,6 +1201,10 @@ namespace Astel{
                 safetyWarningsToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_safety_warnings");
                 safetyWarningsOnToolStripMenuItem.Text = software_lang.TSReadLangs("SafetyWarnings", "sw_on");
                 safetyWarningsOffToolStripMenuItem.Text = software_lang.TSReadLangs("SafetyWarnings", "sw_off");
+                // MASK PASSOWRD
+                PassMaskStatusToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_password_mask");
+                PMaskActiveToolStripMenuItem.Text = software_lang.TSReadLangs("PasswordMask", "pm_on");
+                PMaskDisabledToolStripMenuItem.Text = software_lang.TSReadLangs("PasswordMask", "pm_off");
                 // CHANGE PASSWORD
                 changePasswordToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_change_password");
                 // UPDATE CHECK
@@ -1166,6 +1339,35 @@ namespace Astel{
                 software_setting_save.TSWriteSettings(ts_settings_container, "SafetyWarnings", get_safety_warnings_value);
             }catch (Exception){ }
         }
+        // PASSWORD MASK SETTINGS
+        // ======================================================================================================
+        private void Password_mask_mode_active(object target_mask_mode){
+            ToolStripMenuItem selected_safety_mode = null;
+            Password_mask_mode_deactive();
+            if (target_mask_mode != null){
+                if (selected_safety_mode != (ToolStripMenuItem)target_mask_mode){
+                    selected_safety_mode = (ToolStripMenuItem)target_mask_mode;
+                    selected_safety_mode.Checked = true;
+                }
+            }
+        }
+        private void Password_mask_mode_deactive(){
+            foreach (ToolStripMenuItem disabled_mask in PassMaskStatusToolStripMenuItem.DropDownItems){
+                disabled_mask.Checked = false;
+            }
+        }
+        private void PCVMActiveToolStripMenuItem_Click(object sender, EventArgs e){
+            if (password_mask_status != 1){ password_mask_status = 1; DataMainTable.Refresh(); Password_mask_mode_settings("1"); Password_mask_mode_active(sender); }
+        }
+        private void PCVMDisabledToolStripMenuItem_Click(object sender, EventArgs e){
+            if (password_mask_status != 0){ password_mask_status = 0; DataMainTable.Refresh(); Password_mask_mode_settings("0"); Password_mask_mode_active(sender); }
+        }
+        private void Password_mask_mode_settings(string get_password_mask_value){
+            try{
+                TSSettingsModule software_setting_save = new TSSettingsModule(ts_sf);
+                software_setting_save.TSWriteSettings(ts_settings_container, "PasswordMask", get_password_mask_value);
+            }catch (Exception){ }
+        }
         // AUTO BACKUP SETTINGS
         // ======================================================================================================
         private void Select_abackup_mode_active(object target_abackup_mode){
@@ -1243,7 +1445,7 @@ namespace Astel{
                     handler.UseProxy = false;
                     using (HttpClient httpClient = new HttpClient(handler)){
                         httpClient.Timeout = TimeSpan.FromSeconds(15);
-                        httpClient.DefaultRequestHeaders.CacheControl = new System.Net.Http.Headers.CacheControlHeaderValue{ NoCache = true, NoStore = true, MustRevalidate = true };
+                        httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue{ NoCache = true, NoStore = true, MustRevalidate = true };
                         httpClient.DefaultRequestHeaders.Pragma.ParseAdd("no-cache");
                         string versionUrl = TS_LinkSystem.github_link_lv;
                         versionUrl += (versionUrl.Contains("?") ? "&" : "?") + "_ts=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -1442,7 +1644,7 @@ namespace Astel{
                 if (import_warning != DialogResult.Yes) return;
             }
             try{
-                Text = TS_VersionEngine.TS_SofwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
+                Text = TS_VersionEngine.TS_SoftwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
                 //
                 string target_data = Path.Combine(ts_session_root_path, "AstelData.xml");
                 File.Copy(filePath, target_data, true);
@@ -1475,7 +1677,7 @@ namespace Astel{
             }catch (Exception ex){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_failed"), "\n", "\n\n", ex.Message));
             }finally{
-                Text = TS_VersionEngine.TS_SofwareVersion(0);
+                Text = TS_VersionEngine.TS_SoftwareVersion(0);
             }
         }
         private async Task ImportCSVFromFile(DataGridView dgv, string filePath){
@@ -1489,7 +1691,7 @@ namespace Astel{
                     return;
                 }
                 //
-                Text = TS_VersionEngine.TS_SofwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
+                Text = TS_VersionEngine.TS_SoftwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
                 //
                 dt.Rows.Clear();
                 string[] lines = File.ReadAllLines(filePath, Encoding.UTF8);
@@ -1543,7 +1745,7 @@ namespace Astel{
             }catch (Exception ex){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_failed"), "\n", "\n\n", ex.Message));
             }finally{
-                Text = TS_VersionEngine.TS_SofwareVersion(0);
+                Text = TS_VersionEngine.TS_SoftwareVersion(0);
             }
         }
         // DRAG & DROP IMPORT DATA FEATURE
@@ -1616,12 +1818,18 @@ namespace Astel{
             try{
                 if (cts != null){
                     cts.Cancel();
-                    auto_backup?.Wait();
+                    try{
+                        auto_backup?.Wait(5000);
+                    }
+                    catch (AggregateException) { }
+                    catch (TaskCanceledException) { }
                     auto_backup = null;
                     cts.Dispose();
                     cts = null;
                 }
-            }catch (Exception){ }
+            }
+            catch (ObjectDisposedException) { }
+            catch (Exception){ }
         }
         private void Astel_FormClosing(object sender, FormClosingEventArgs e){
             StopAutoBackup();

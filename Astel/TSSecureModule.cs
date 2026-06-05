@@ -25,6 +25,7 @@ namespace Astel{
         // ============================================================
 
         public class TS_AES_Encryption{
+
             private static byte[] MasterKey;
             private const int SaltSize = 16;
             private const int IvSize = 16;
@@ -40,6 +41,8 @@ namespace Astel{
                     throw new ArgumentNullException(nameof(key));
                 if (key.Length != 32)
                     throw new ArgumentException("Master key must be 32 bytes (256-bit).");
+                if (MasterKey != null)
+                    Array.Clear(MasterKey, 0, MasterKey.Length);
                 MasterKey = (byte[])key.Clone();
             }
 
@@ -79,7 +82,7 @@ namespace Astel{
                         throw new CryptographicException("Key derivation failed during encryption: " + ex.Message, ex);
                     }
                     // Encrypt
-                    using (var aes = new AesManaged()){
+                    using (var aes = Aes.Create()){
                         aes.Mode = CipherMode.CBC;
                         aes.Padding = PaddingMode.PKCS7;
                         aes.KeySize = 256;
@@ -194,7 +197,7 @@ namespace Astel{
                         throw new CryptographicException("HMAC validation failed. Data may be tampered or corrupted.");
                     }
                     // Decrypt
-                    using (var aes = new AesManaged()){
+                    using (var aes = Aes.Create()){
                         aes.Mode = CipherMode.CBC;
                         aes.Padding = PaddingMode.PKCS7;
                         aes.KeySize = 256;
@@ -241,41 +244,55 @@ namespace Astel{
                     throw new ArgumentNullException(nameof(inputKeyMaterial));
                 if (outputLength <= 0)
                     throw new ArgumentOutOfRangeException(nameof(outputLength));
-                if (outputLength > 255 * 64) // 64 bytes = HMAC-SHA512 hash size
+                if (outputLength > 255 * 64)
                     throw new ArgumentOutOfRangeException("Output length too large (max 16320 bytes).");
                 // Handle null inputs
                 if (salt == null || salt.Length == 0)
-                    salt = new byte[64]; // Hash length of SHA512
+                    salt = new byte[64];
                 if (info == null)
                     info = new byte[0];
-                // HKDF-Extract: PRK = HMAC-Hash(salt, IKM)
-                byte[] prk;
-                using (var hkdfExtract = new HMACSHA512(salt)){
-                    prk = hkdfExtract.ComputeHash(inputKeyMaterial);
-                }
-                // HKDF-Expand: OKM = PRK repeated and expanded
-                byte[] okm = new byte[outputLength];
+                byte[] prk = null;
                 byte[] previousT = new byte[0];
-                int iterations = (outputLength + 63) / 64; // Round up to 64-byte chunks
-                for (int i = 0; i < iterations; i++){
-                    // T(i) = HMAC-Hash(PRK, T(i-1) || info || counter)
-                    using (var hkdfExpand = new HMACSHA512(prk)){
-                        using (var ms = new MemoryStream()){
-                            // T(i-1)
-                            ms.Write(previousT, 0, previousT.Length);
-                            // info
-                            ms.Write(info, 0, info.Length);
-                            // counter (1-indexed)
-                            ms.WriteByte((byte)(i + 1));
-                            byte[] t = hkdfExpand.ComputeHash(ms.ToArray());
-                            // Copy to output
+                try{
+                    // HKDF-Extract
+                    using (var hkdfExtract = new HMACSHA512(salt)){
+                        prk = hkdfExtract.ComputeHash(inputKeyMaterial);
+                    }
+                    // HKDF-Expand
+                    byte[] okm = new byte[outputLength];
+                    int iterations = (outputLength + 63) / 64;
+                    for (int i = 0; i < iterations; i++){
+                        byte[] t = null;
+                        try{
+                            using (var hkdfExpand = new HMACSHA512(prk)){
+                                using (var ms = new MemoryStream()){
+                                    ms.Write(previousT, 0, previousT.Length);
+                                    ms.Write(info, 0, info.Length);
+                                    ms.WriteByte((byte)(i + 1));
+                                    t = hkdfExpand.ComputeHash(ms.ToArray());
+                                }
+                            }
                             int toCopy = Math.Min(64, outputLength - (i * 64));
                             Buffer.BlockCopy(t, 0, okm, i * 64, toCopy);
+                            if (previousT.Length > 0){
+                                Array.Clear(previousT, 0, previousT.Length);
+                            }
                             previousT = t;
+                            t = null;
+                        }
+                        finally{
+                            if (t != null)
+                                Array.Clear(t, 0, t.Length);
                         }
                     }
+                    return okm;
                 }
-                return okm;
+                finally{
+                    if (prk != null)
+                        Array.Clear(prk, 0, prk.Length);
+                    if (previousT != null && previousT.Length > 0)
+                        Array.Clear(previousT, 0, previousT.Length);
+                }
             }
 
             // --------------------------------------------------------
@@ -289,10 +306,15 @@ namespace Astel{
                     throw new ArgumentNullException(nameof(salt));
                 if (string.IsNullOrEmpty(info))
                     throw new ArgumentException("Info must not be null or empty.", nameof(info));
-                byte[] infoBytes = Encoding.UTF8.GetBytes(info);
-                // Use HKDF-HMAC-SHA512 for key derivation
-                // This provides proper key separation between encryption and authentication keys
-                return HKDF_SHA512(masterKey, salt, infoBytes, outputLength);
+                byte[] infoBytes = null;
+                try{
+                    infoBytes = Encoding.UTF8.GetBytes(info);
+                    return HKDF_SHA512(masterKey, salt, infoBytes, outputLength);
+                }
+                finally{
+                    if (infoBytes != null)
+                        Array.Clear(infoBytes, 0, infoBytes.Length);
+                }
             }
 
             // --------------------------------------------------------
@@ -333,7 +355,7 @@ namespace Astel{
         // PBKDF2-HMAC-SHA512
         // ============================================================
 
-        public static byte[] PBKDF2_HMAC_SHA512( string password, byte[] salt, int iterations, int outputBytes){
+        public static byte[] PBKDF2_HMAC_SHA512(string password, byte[] salt, int iterations, int outputBytes){
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
             if (salt == null)
@@ -348,19 +370,41 @@ namespace Astel{
         }
 
         // ============================================================
-        // SESSION DATA PROTECTION
+        // SESSION DATA PROTECTION (DPAPI)
         // ============================================================
 
         public class TS_SessionProtection{
+            private static readonly byte[] s_additionalEntropy = Encoding.UTF8.GetBytes($"{Application.ProductName}_Session_Protection_v1");
             public static string ProtectSessionData(string plainData){
                 if (string.IsNullOrEmpty(plainData))
                     throw new ArgumentNullException(nameof(plainData));
-                return plainData;
+                byte[] plainBytes = null;
+                try{
+                    plainBytes = Encoding.UTF8.GetBytes(plainData);
+                    byte[] encrypted = ProtectedData.Protect(plainBytes, s_additionalEntropy, DataProtectionScope.CurrentUser);
+                    return Convert.ToBase64String(encrypted);
+                }
+                finally{
+                    if (plainBytes != null)
+                        Array.Clear(plainBytes, 0, plainBytes.Length);
+                }
             }
             public static string UnprotectSessionData(string protectedData){
                 if (string.IsNullOrEmpty(protectedData))
                     throw new ArgumentNullException(nameof(protectedData));
-                return protectedData;
+                byte[] encrypted = null;
+                byte[] plainBytes = null;
+                try{
+                    encrypted = Convert.FromBase64String(protectedData);
+                    plainBytes = ProtectedData.Unprotect(encrypted, s_additionalEntropy, DataProtectionScope.CurrentUser);
+                    return Encoding.UTF8.GetString(plainBytes);
+                }
+                finally{
+                    if (encrypted != null)
+                        Array.Clear(encrypted, 0, encrypted.Length);
+                    if (plainBytes != null)
+                        Array.Clear(plainBytes, 0, plainBytes.Length);
+                }
             }
         }
 
@@ -379,22 +423,36 @@ namespace Astel{
             }catch (FormatException){
                 throw new ArgumentException("Salt must be Base64 encoded.");
             }
-            byte[] hash = PBKDF2_HMAC_SHA512(password, salt, iterations, 64);;
-            return Convert.ToBase64String(hash);
+            byte[] hash = null;
+            try{
+                hash = PBKDF2_HMAC_SHA512(password, salt, iterations, 64);
+                return Convert.ToBase64String(hash);
+            }
+            finally{
+                if (hash != null)
+                    Array.Clear(hash, 0, hash.Length);
+                if (salt != null)
+                    Array.Clear(salt, 0, salt.Length);
+            }
         }
 
         // ============================================================
         // GENERATE SALT
         // ============================================================
 
-        public static string GenerateSalt(int size = 16){
+        public static string GenerateSalt(int size = 32){
             if (size <= 0)
                 throw new ArgumentOutOfRangeException(nameof(size));
             byte[] salt = new byte[size];
-            using (var rng = RandomNumberGenerator.Create()){
-                rng.GetBytes(salt);
+            try{
+                using (var rng = RandomNumberGenerator.Create()){
+                    rng.GetBytes(salt);
+                }
+                return Convert.ToBase64String(salt);
             }
-            return Convert.ToBase64String(salt);
+            finally{
+                Array.Clear(salt, 0, salt.Length);
+            }
         }
 
         // ============================================================
@@ -405,21 +463,17 @@ namespace Astel{
             if (strLength <= 0)
                 throw new ArgumentOutOfRangeException(nameof(strLength));
             const string chars ="abcdefghijklmnopqrstuvwxyz0123456789";
-            // Determine rejection threshold to avoid modulo bias
-            // We want uniform distribution across charset
-            int charsetSize = chars.Length; // 36
+            int charsetSize = chars.Length;
             int rejectionThreshold = byte.MaxValue - (byte.MaxValue % charsetSize);
             char[] result = new char[strLength];
             using (var rng = RandomNumberGenerator.Create()){
                 byte[] buffer = new byte[1];
                 for (int i = 0; i < strLength; i++){
-                    // Retry until we get a value below rejection threshold
                     byte randomByte;
                     do{
                         rng.GetBytes(buffer);
                         randomByte = buffer[0];
                     } while (randomByte >= rejectionThreshold);
-                    // Now we have uniform distribution
                     result[i] = chars[randomByte % charsetSize];
                 }
             }

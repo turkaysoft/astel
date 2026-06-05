@@ -67,6 +67,7 @@
       <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8.1\System.dll</HintPath>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Management" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
@@ -199,7 +200,9 @@
     <None Include="astel_images\astel_ui\theme_dark\ct_copy_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\ct_confirm_dark.png" />
     <None Include="astel_images\astel_ui\theme_dark\ct_add_dark.png" />
-    <None Include="astel_images\ts_preloader\ts_preloader.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="astel_images\ts_preloader\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
