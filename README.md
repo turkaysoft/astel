@@ -89,6 +89,7 @@ You can support this project by making a donation to help ensure its sustainabil
 | `F10` | Change Password |
 | `F11` | Check Updates |
 | `F12` | About |
+| `CTRL + P` | Password Generator |
 | `CTRL + Alt + D` | Donate Page |
 | `CTRL + Shift 1` | Export Astel File |
 | `CTRL + Shift 2` | Export CSV File |
@@ -97,6 +98,7 @@ You can support this project by making a donation to help ensure its sustainabil
 | `CTRL + Shift 5` | Backup On |
 | `CTRL + Shift 6` | Backup Off |
 | `CTRL + Shift 7` | Open Backup Folder |
+| `ESC` | Clear Selection |
 
 ---
 
