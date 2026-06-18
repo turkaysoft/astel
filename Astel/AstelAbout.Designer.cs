@@ -299,7 +299,7 @@
             // ImageAbout
             // 
             this.ImageAbout.BackColor = System.Drawing.Color.Transparent;
-            this.ImageAbout.BackgroundImage = global::Astel.Properties.Resources.ts_preloader;
+            this.ImageAbout.BackgroundImage = global::Astel.Properties.Resources.ts_about;
             this.ImageAbout.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.ImageAbout.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ImageAbout.Location = new System.Drawing.Point(0, 0);

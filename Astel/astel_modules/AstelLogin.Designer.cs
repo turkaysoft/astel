@@ -33,7 +33,7 @@
             this.LabelPassword = new System.Windows.Forms.Label();
             this.TxtPassword = new System.Windows.Forms.TextBox();
             this.BtnLogin = new Astel.TSCustomButton();
-            this.LabelHeader = new System.Windows.Forms.Label();
+            this.LabelHeader = new Astel.TSCustomLabel();
             this.Panel_BG.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -90,7 +90,7 @@
             // 
             // TxtPassword
             // 
-            this.TxtPassword.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.TxtPassword.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.TxtPassword.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.TxtPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
@@ -129,6 +129,7 @@
             // LabelHeader
             // 
             this.LabelHeader.BackColor = System.Drawing.Color.White;
+            this.LabelHeader.BorderRadius = 5;
             this.LabelHeader.Dock = System.Windows.Forms.DockStyle.Top;
             this.LabelHeader.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.LabelHeader.ImeMode = System.Windows.Forms.ImeMode.NoControl;
@@ -169,6 +170,6 @@
         internal System.Windows.Forms.Label LabelPassword;
         private System.Windows.Forms.TextBox TxtPassword;
         private TSCustomButton BtnLogin;
-        internal System.Windows.Forms.Label LabelHeader;
+        internal TSCustomLabel LabelHeader;
     }
 }

@@ -81,6 +81,49 @@ namespace Astel{
         // ======================================================================================================
         public static string lang, lang_path;
         public static int theme, themeSystem, startup_status, auto_backup_status, safety_warnings_status, password_mask_status;
+        // TS PROTECTION ERROR MESSAGES
+        // ======================================================================================================
+        public static class TSProtectionErrorMessages{
+            public static Dictionary<string, string> Messages = new Dictionary<string, string>(){
+                { "AES_MasterKeyNotSet", "AES Master Key is not set." },
+                { "AES_KeyNull", "Master key cannot be null." },
+                { "AES_KeyLengthInvalid", "Master key must be 32 bytes (256-bit)." },
+                { "AES_PlainTextNull", "Plain text cannot be null." },
+                { "AES_Base64InputNull", "Base64 input cannot be null." },
+                { "AES_KeyDerivationFailed", "Key derivation failed during encryption: {0}" },
+                { "AES_KeyDerivationFailedDecrypt", "Key derivation failed during decryption: {0}" },
+                { "AES_InvalidBase64", "Invalid base64 format in ciphertext: {0}" },
+                { "AES_InvalidCipherFormat", "Invalid ciphertext format." },
+                { "AES_UnsupportedVersion", "Unsupported ciphertext version: {0}" },
+                { "AES_InvalidCipherLength", "Invalid ciphertext length." },
+                { "AES_HMACValidationFailed", "HMAC validation failed. Data may be tampered or corrupted." },
+                { "AES_InvalidUTF8", "Invalid UTF-8 decoded data: {0}" },
+                { "AES_EncryptionFailed", "Encryption operation failed: {0}" },
+                { "AES_DecryptionFailed", "Decryption operation failed: {0}" },
+                { "HKDF_InputKeyNull", "Input key material cannot be null." },
+                { "HKDF_OutputLengthInvalid", "Output length must be greater than zero." },
+                { "HKDF_OutputLengthTooLarge", "Output length too large." },
+                { "DeriveSubKey_MasterKeyNull", "Master key cannot be null." },
+                { "DeriveSubKey_SaltNull", "Salt cannot be null." },
+                { "DeriveSubKey_InfoEmpty", "Info must not be null or empty." },
+                { "ExtractKey_LoadFailed", "Failed to load XML document." },
+                { "ExtractKey_MissingAttributes", "Missing required attributes." },
+                { "ExtractKey_InvalidBase64", "Invalid Base64 format in attributes." },
+                { "TempKey_Null", "Temporary key cannot be null." },
+                { "PBKDF2_PasswordNull", "Password cannot be null." },
+                { "PBKDF2_SaltNull", "Salt cannot be null." },
+                { "PBKDF2_IterationsInvalid", "Iterations must be greater than zero." },
+                { "PBKDF2_OutputBytesInvalid", "Output bytes must be greater than zero." },
+                { "Session_PlainDataNull", "Plain data cannot be null or empty." },
+                { "Session_ProtectedDataNull", "Protected data cannot be null or empty." },
+                { "Hash_PasswordNull", "Password cannot be null." },
+                { "Hash_SaltNull", "Salt cannot be null." },
+                { "Hash_SaltInvalid", "Salt must be Base64 encoded." },
+                { "Salt_SizeInvalid", "Salt size must be greater than zero." },
+                { "Random_LengthInvalid", "Random string length must be greater than zero." },
+                { "UnknownError", "An unknown error occurred" }
+            };
+        }
         // LOCAL VARIABLES
         // ======================================================================================================
         Task auto_backup;
@@ -214,7 +257,7 @@ namespace Astel{
         private void MainToolTip_Draw(object sender, DrawToolTipEventArgs e){ e.DrawBackground(); e.DrawBorder(); e.DrawText(); }
         // LOAD
         // ======================================================================================================
-        private async void Astel_Load(object sender, EventArgs e){ 
+        private async void Astel_Load(object sender, EventArgs e){
             // PREFETCH
             ServiceListAdd();
             RunSoftwareEngine();
@@ -511,7 +554,7 @@ namespace Astel{
                 { software_lang.TSReadLangs("SafetyWarningsPassword", "swp_pass_req_2"), Regex.IsMatch(password, "[A-Z]") },
                 { software_lang.TSReadLangs("SafetyWarningsPassword", "swp_pass_req_3"), Regex.IsMatch(password, "[a-z]") },
                 { software_lang.TSReadLangs("SafetyWarningsPassword", "swp_pass_req_4"), Regex.IsMatch(password, "[0-9]") },
-                { software_lang.TSReadLangs("SafetyWarningsPassword", "swp_pass_req_5"), Regex.IsMatch(password, "[!@#$%^&*(),.?\":{}|<>]") }
+                { software_lang.TSReadLangs("SafetyWarningsPassword", "swp_pass_req_5"), Regex.IsMatch(password, "[!@#$%^&*()\\-_=+?]") }
             };
             bool strongPassword = true;
             foreach (var checkPasswordReq in checksPasswordRequire.Values){
@@ -533,35 +576,52 @@ namespace Astel{
                     TS_MessageBoxEngine.TS_MessageBox(this, 2, errorMsg);
                     return;
                 }
+                // UPDATE CHANGE CHECK
+                // =====================================================================
                 if (isUpdate){
-                    // CHECK IF ANY DATA HAS CHANGED
                     string currentService = FormatServiceName(TxtService.Text);
                     string currentEmail = TxtEmail.Text.Trim();
                     string currentPassword = TxtPassword.Text.Trim();
                     string currentUrl = TxtUrl.Text.Trim();
                     string currentNote = TxtNote.Text.Trim();
-                    if (currentService == _originalService &&
-                        currentEmail == _originalEmail &&
-                        currentPassword == _originalPassword &&
-                        currentUrl == _originalUrl &&
-                        currentNote == _originalNote){
+                    if (currentService == _originalService && currentEmail == _originalEmail && currentPassword == _originalPassword && currentUrl == _originalUrl && currentNote == _originalNote){
                         TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", "ah_update_no_changes"));
                         return;
                     }
                     var confirm = TS_MessageBoxEngine.TS_MessageBox(this, 4, string.Format(software_lang.TSReadLangs("AstelHome", "ah_update_question_info"), DataMainTable.SelectedRows[0].Cells["Service"].Value?.ToString() ?? ""));
-                    if (confirm != DialogResult.Yes)
+                    if (confirm != DialogResult.Yes){
                         return;
+                    }
                 }
-                //
-                if (!File.Exists(ts_data_xml_path)) await InitializeLoaderSecurityAsync();
-                //
+                // CREATE XML IF NOT EXISTS
+                // =====================================================================
+                if (!File.Exists(ts_data_xml_path)){
+                    await InitializeLoaderSecurityAsync();
+                }
                 var ts_xDoc = XDocument.Load(ts_data_xml_path);
                 var ts_xml_root = ts_xDoc.Element("Datas");
-                //
+                // DUPLICATE CHECK
+                // =====================================================================
+                var duplicateData = ts_xml_root.Elements("Data").FirstOrDefault(x => {
+                    int rowId = (int)x.Element("ID");
+                    if (isUpdate && rowId == int.Parse(DataMainTable.SelectedRows[0].Cells["ID"].Value.ToString())){
+                        return false;
+                    }
+                    string service = TS_AES_Encryption.TS_AES_Decrypt(x.Element("Service")?.Value ?? "");
+                    string email = TS_AES_Encryption.TS_AES_Decrypt(x.Element("Email")?.Value ?? "");
+                    return service.Equals(in_service, StringComparison.OrdinalIgnoreCase) && email.Equals(in_email, StringComparison.OrdinalIgnoreCase);
+                });
+                if (duplicateData != null){
+                    string duplicateService = TS_AES_Encryption.TS_AES_Decrypt(duplicateData.Element("Service")?.Value ?? "");
+                    string duplicateEmail = TS_AES_Encryption.TS_AES_Decrypt(duplicateData.Element("Email")?.Value ?? "");
+                    TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelHome", "ah_duplicate_entry"), duplicateService, duplicateEmail));
+                    return;
+                }
+                // UPDATE
+                // =====================================================================
                 if (isUpdate){
                     int selectedId = int.Parse(DataMainTable.SelectedRows[0].Cells["ID"].Value.ToString());
                     var elementToUpdate = ts_xml_root.Elements("Data").FirstOrDefault(x => (int)x.Element("ID") == selectedId);
-                    //
                     if (elementToUpdate != null){
                         elementToUpdate.SetElementValue("Service", TS_AES_Encryption.TS_AES_Encrypt(in_service));
                         elementToUpdate.SetElementValue("Email", TS_AES_Encryption.TS_AES_Encrypt(in_email));
@@ -571,24 +631,28 @@ namespace Astel{
                         elementToUpdate.SetElementValue("PassChangeDate", TS_AES_Encryption.TS_AES_Encrypt(DateTime.Now.ToString("dd.MM.yyyy - HH:mm")));
                     }
                 }else{
-                    ts_xml_root.Add(new XElement("Data",
-                        new XElement("ID", TSGenerateNewID()),
-                        new XElement("Service", TS_AES_Encryption.TS_AES_Encrypt(in_service)),
-                        new XElement("Email", TS_AES_Encryption.TS_AES_Encrypt(in_email)),
-                        new XElement("Password", TS_AES_Encryption.TS_AES_Encrypt(in_password)),
-                        new XElement("Url", TS_AES_Encryption.TS_AES_Encrypt(in_url)),
-                        new XElement("Note", TS_AES_Encryption.TS_AES_Encrypt(in_note)),
-                        new XElement("PassChangeDate", TS_AES_Encryption.TS_AES_Encrypt(DateTime.Now.ToString("dd.MM.yyyy - HH:mm")))
-                    ));
+                    // ADD
+                    // =================================================================
+                    ts_xml_root.Add(
+                        new XElement("Data",
+                            new XElement("ID", TSGenerateNewID()),
+                            new XElement("Service", TS_AES_Encryption.TS_AES_Encrypt(in_service)),
+                            new XElement("Email", TS_AES_Encryption.TS_AES_Encrypt(in_email)),
+                            new XElement("Password", TS_AES_Encryption.TS_AES_Encrypt(in_password)),
+                            new XElement("Url", TS_AES_Encryption.TS_AES_Encrypt(in_url)),
+                            new XElement("Note", TS_AES_Encryption.TS_AES_Encrypt(in_note)),
+                            new XElement("PassChangeDate",TS_AES_Encryption.TS_AES_Encrypt(DateTime.Now.ToString("dd.MM.yyyy - HH:mm")))
+                        )
+                    );
                 }
-                //
+                // SAVE
+                // =====================================================================
                 ts_xDoc.Save(ts_data_xml_path);
                 AstelLoadXMLData();
                 NodeClearInput();
                 _isFirstKeyNavigation = true;
                 DataMainTable.Focus();
                 DataMainTable.ClearSelection();
-                //
                 TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", isUpdate ? "ah_update_success" : "ah_add_success"));
             }catch (Exception){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("AstelHome", isUpdate ? "ah_update_failed" : "ah_add_failed"), "\n"));
@@ -618,15 +682,18 @@ namespace Astel{
                     //
                     TSReorderID(ts_xDoc);
                     ts_xDoc.Save(ts_data_xml_path);
-                                        AstelLoadXMLData();
+                    AstelLoadXMLData();
                     NodeClearInput();
                     _isFirstKeyNavigation = true;
                     //
+                    DataMainTable.ClearSelection();
                     TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("AstelHome", "ah_delete_success"));
                 }
-                DataMainTable.Focus();
             }catch (Exception){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("AstelHome", "ah_delete_failed"), "\n"));
+            }finally{
+                DataMainTable.Focus();
+                DataMainTable.ClearSelection();
             }
         }
         // CLEAR INPUT (Memory Safe)
@@ -641,6 +708,17 @@ namespace Astel{
         private static void ClearSecureTextBox(TextBox tb){
             if (tb == null || string.IsNullOrEmpty(tb.Text)) return;
             tb.Text = string.Empty;
+        }
+        // CLEAR SELECTION WITH ESCAPE KEY
+        // ======================================================================================================
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData){
+            if (keyData == Keys.Escape){
+                DataMainTable.ClearSelection();
+                DataMainTable.CurrentCell = null;
+                NodeClearInput();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
         // COPY DATA (with clipboard auto-clear + memory cleanup)
         // ======================================================================================================
@@ -697,33 +775,44 @@ namespace Astel{
             string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             string lower = "abcdefghijklmnopqrstuvwxyz";
             string digits = "0123456789";
-            string symbols = "!@#$%^&*()-_=+[]{}|;:,.<>?";
+            string symbols = "!@#$%^&*()-_=+?";
             string allChars = upper + lower + digits + symbols;
-            int allCharsSize = allChars.Length;
-            int allRejectionThreshold = byte.MaxValue - (byte.MaxValue % allCharsSize);
-            int passLength;
             byte[] buffer = new byte[1];
-            do { _secureRng.GetBytes(buffer); } while (buffer[0] >= byte.MaxValue - (byte.MaxValue % 9));
-            passLength = 10 + (buffer[0] % 9);
-            var chars = new char[passLength];
-            (string category, int index)[] categories = new[] {
-                (upper, 0), (lower, 1), (digits, 2), (symbols, 3)
-            };
-            foreach (var (cat, idx) in categories){
-                int catSize = cat.Length;
+            int passLength;
+            do{
+                _secureRng.GetBytes(buffer);
+            } while (buffer[0] >= byte.MaxValue - (byte.MaxValue % 5));
+            passLength = 12 + (buffer[0] % 5);
+            char[] chars = new char[passLength];
+            string[] categories = new[] { upper, lower, digits, symbols };
+            for (int i = 0; i < categories.Length; i++){
+                string category = categories[i];
+                int catSize = category.Length;
                 int catThreshold = byte.MaxValue - (byte.MaxValue % catSize);
                 byte catByte;
-                do { _secureRng.GetBytes(buffer); catByte = buffer[0]; } while (catByte >= catThreshold);
-                chars[idx] = cat[catByte % catSize];
+                do{
+                    _secureRng.GetBytes(buffer);
+                    catByte = buffer[0];
+                } while (catByte >= catThreshold);
+
+                chars[i] = category[catByte % catSize];
             }
+            int allCharsSize = allChars.Length;
+            int allRejectionThreshold = byte.MaxValue - (byte.MaxValue % allCharsSize);
             for (int i = categories.Length; i < passLength; i++){
                 byte randByte;
-                do { _secureRng.GetBytes(buffer); randByte = buffer[0]; } while (randByte >= allRejectionThreshold);
+                do{
+                    _secureRng.GetBytes(buffer);
+                    randByte = buffer[0];
+                } while (randByte >= allRejectionThreshold);
                 chars[i] = allChars[randByte % allCharsSize];
             }
             for (int i = passLength - 1; i > 0; i--){
                 byte swapByte;
-                do { _secureRng.GetBytes(buffer); swapByte = buffer[0]; } while (swapByte >= byte.MaxValue - (byte.MaxValue % (i + 1)));
+                do{
+                    _secureRng.GetBytes(buffer);
+                    swapByte = buffer[0];
+                } while (swapByte >= byte.MaxValue - (byte.MaxValue % (i + 1)));
                 int j = swapByte % (i + 1);
                 (chars[j], chars[i]) = (chars[i], chars[j]);
             }
@@ -1156,6 +1245,44 @@ namespace Astel{
                 lang = lang_code;
                 // GLOBAL ENGINE
                 TSGetLangs software_lang = new TSGetLangs(lang_path);
+                // PROTECTION ERRORS
+                TSProtectionErrorMessages.Messages["AES_MasterKeyNotSet"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_master_key_not_set");
+                TSProtectionErrorMessages.Messages["AES_KeyNull"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_key_null");
+                TSProtectionErrorMessages.Messages["AES_KeyLengthInvalid"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_key_length_invalid");
+                TSProtectionErrorMessages.Messages["AES_PlainTextNull"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_plain_text_null");
+                TSProtectionErrorMessages.Messages["AES_Base64InputNull"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_base64_input_null");
+                TSProtectionErrorMessages.Messages["AES_KeyDerivationFailed"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_key_derivation_failed");
+                TSProtectionErrorMessages.Messages["AES_KeyDerivationFailedDecrypt"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_key_derivation_failed_decrypt");
+                TSProtectionErrorMessages.Messages["AES_InvalidBase64"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_invalid_base64");
+                TSProtectionErrorMessages.Messages["AES_InvalidCipherFormat"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_invalid_cipher_format");
+                TSProtectionErrorMessages.Messages["AES_UnsupportedVersion"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_unsupported_version");
+                TSProtectionErrorMessages.Messages["AES_InvalidCipherLength"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_invalid_cipher_length");
+                TSProtectionErrorMessages.Messages["AES_HMACValidationFailed"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_hmac_validation_failed");
+                TSProtectionErrorMessages.Messages["AES_InvalidUTF8"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_invalid_utf8");
+                TSProtectionErrorMessages.Messages["AES_EncryptionFailed"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_encryption_failed");
+                TSProtectionErrorMessages.Messages["AES_DecryptionFailed"] = software_lang.TSReadLangs("TSProtection", "tsp_aes_decryption_failed");
+                TSProtectionErrorMessages.Messages["HKDF_InputKeyNull"] = software_lang.TSReadLangs("TSProtection", "tsp_hkdf_input_key_null");
+                TSProtectionErrorMessages.Messages["HKDF_OutputLengthInvalid"] = software_lang.TSReadLangs("TSProtection", "tsp_hkdf_output_length_invalid");
+                TSProtectionErrorMessages.Messages["HKDF_OutputLengthTooLarge"] = software_lang.TSReadLangs("TSProtection", "tsp_hkdf_output_length_too_large");
+                TSProtectionErrorMessages.Messages["DeriveSubKey_MasterKeyNull"] = software_lang.TSReadLangs("TSProtection", "tsp_derive_subkey_master_key_null");
+                TSProtectionErrorMessages.Messages["DeriveSubKey_SaltNull"] = software_lang.TSReadLangs("TSProtection", "tsp_derive_subkey_salt_null");
+                TSProtectionErrorMessages.Messages["DeriveSubKey_InfoEmpty"] = software_lang.TSReadLangs("TSProtection", "tsp_derive_subkey_info_empty");
+                TSProtectionErrorMessages.Messages["ExtractKey_LoadFailed"] = software_lang.TSReadLangs("TSProtection", "tsp_extract_key_load_failed");
+                TSProtectionErrorMessages.Messages["ExtractKey_MissingAttributes"] = software_lang.TSReadLangs("TSProtection", "tsp_extract_key_missing_attributes");
+                TSProtectionErrorMessages.Messages["ExtractKey_InvalidBase64"] = software_lang.TSReadLangs("TSProtection", "tsp_extract_key_invalid_base64");
+                TSProtectionErrorMessages.Messages["TempKey_Null"] = software_lang.TSReadLangs("TSProtection", "tsp_temp_key_null");
+                TSProtectionErrorMessages.Messages["PBKDF2_PasswordNull"] = software_lang.TSReadLangs("TSProtection", "tsp_pbkdf2_password_null");
+                TSProtectionErrorMessages.Messages["PBKDF2_SaltNull"] = software_lang.TSReadLangs("TSProtection", "tsp_pbkdf2_salt_null");
+                TSProtectionErrorMessages.Messages["PBKDF2_IterationsInvalid"] = software_lang.TSReadLangs("TSProtection", "tsp_pbkdf2_iterations_invalid");
+                TSProtectionErrorMessages.Messages["PBKDF2_OutputBytesInvalid"] = software_lang.TSReadLangs("TSProtection", "tsp_pbkdf2_output_bytes_invalid");
+                TSProtectionErrorMessages.Messages["Session_PlainDataNull"] = software_lang.TSReadLangs("TSProtection", "tsp_session_plain_data_null");
+                TSProtectionErrorMessages.Messages["Session_ProtectedDataNull"] = software_lang.TSReadLangs("TSProtection", "tsp_session_protected_data_null");
+                TSProtectionErrorMessages.Messages["Hash_PasswordNull"] = software_lang.TSReadLangs("TSProtection", "tsp_hash_password_null");
+                TSProtectionErrorMessages.Messages["Hash_SaltNull"] = software_lang.TSReadLangs("TSProtection", "tsp_hash_salt_null");
+                TSProtectionErrorMessages.Messages["Hash_SaltInvalid"] = software_lang.TSReadLangs("TSProtection", "tsp_hash_salt_invalid");
+                TSProtectionErrorMessages.Messages["Salt_SizeInvalid"] = software_lang.TSReadLangs("TSProtection", "tsp_salt_size_invalid");
+                TSProtectionErrorMessages.Messages["Random_LengthInvalid"] = software_lang.TSReadLangs("TSProtection", "tsp_random_length_invalid");
+                TSProtectionErrorMessages.Messages["UnknownError"] = software_lang.TSReadLangs("TSProtection", "tsp_unknown_error");
                 // SETTINGS
                 settingsToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_settings");
                 // THEMES
@@ -1538,6 +1665,7 @@ namespace Astel{
                     using (var sfd = new SaveFileDialog()){
                         sfd.Title = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_save_location"), Application.ProductName);
                         sfd.Filter = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_save_file_name"), ts_data_backup_extension_csv_name, string.Format("(*{0})|*{1}", ts_data_backup_extension_csv, ts_data_backup_extension_csv));
+                        sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                         sfd.FileName = $"{Path.GetFileNameWithoutExtension(ts_data_xml_path)}_{DateTime.Now:dd.MM.yyyy_HH_mm}{ts_data_backup_extension_csv}";
                         if (sfd.ShowDialog() == DialogResult.OK){
                             ExportToCSV(DataMainTable, sfd.FileName);
@@ -1559,8 +1687,9 @@ namespace Astel{
             return DataMainTable.Rows.Count > 0;
         }
         private string EscapeCsv(string s){
-            if (string.IsNullOrEmpty(s)) return "";
-            if (s.Contains(",") || s.Contains("\"") || s.Contains("\n")){
+            if (string.IsNullOrEmpty(s))
+                return "";
+            if (s.Contains(",") || s.Contains("\"") || s.Contains("\n") || s.Contains("\r")){
                 s = s.Replace("\"", "\"\"");
                 return $"\"{s}\"";
             }
@@ -1568,8 +1697,8 @@ namespace Astel{
         }
         private string[] ParseCsvLine(string line){
             var values = new List<string>();
-            int i = 0;
             var sb = new StringBuilder();
+            int i = 0;
             bool inQuotes = false;
             while (i < line.Length){
                 char c = line[i];
@@ -1594,7 +1723,8 @@ namespace Astel{
         private void ExportToCSV(DataGridView dgv, string filePath){
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("name,url,username,password,note");
-            foreach (DataGridViewRow row in dgv.Rows){
+            for (int i = 0; i < dgv.Rows.Count; i++){
+                DataGridViewRow row = dgv.Rows[i];
                 if (!row.IsNewRow){
                     string __service = row.Cells[1].Value?.ToString() ?? "";
                     string __email = row.Cells[2].Value?.ToString() ?? "";
@@ -1608,13 +1738,14 @@ namespace Astel{
                         EscapeCsv(__password),
                         EscapeCsv(__note)
                     );
-                    sb.AppendLine(paste_line);
+                    sb.Append(paste_line);
+                    if (i < dgv.Rows.Count - 1) sb.AppendLine();
                 }
             }
             File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
         }
-        // IMPORT 
-        // ==========================
+        // IMPORT
+        // ==========================================================================================
         private void AstelImportDataToolStripMenuItem_Click(object sender, EventArgs e){
             using (var ofd = new OpenFileDialog()){
                 TSGetLangs software_lang = new TSGetLangs(lang_path);
@@ -1622,10 +1753,17 @@ namespace Astel{
                 ofd.Filter = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_file_name"), Application.ProductName, string.Format("(*{0})|*{1}", ts_data_backup_extension_astel, ts_data_backup_extension_astel));
                 ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 if (ofd.ShowDialog() == DialogResult.OK){
-                    ImportAstelFromFile(ofd.FileName);
+                    bool mergeData = false;
+                    if (DataMainTable.Rows.Count > 0){
+                        DialogResult result = TS_MessageBoxEngine.TS_MessageBox(this, 11, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_merge_question"), "\n\n", "\n\n"));
+                        mergeData = result == DialogResult.Yes;
+                    }
+                    ImportAstelFromFile(ofd.FileName, mergeData);
                 }
             }
         }
+        // CSV IMPORT
+        // ==========================================================================================
         private async void CSVImportDataToolStripMenuItem_Click(object sender, EventArgs e){
             using (var ofd = new OpenFileDialog()){
                 TSGetLangs software_lang = new TSGetLangs(lang_path);
@@ -1633,22 +1771,100 @@ namespace Astel{
                 ofd.Filter = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_file_name"), ts_data_backup_extension_csv_name, string.Format("(*{0})|*{1}", ts_data_backup_extension_csv, ts_data_backup_extension_csv));
                 ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 if (ofd.ShowDialog() == DialogResult.OK){
-                   await ImportCSVFromFile(DataMainTable, ofd.FileName);
+                    bool mergeData = false;
+                    if (DataMainTable.Rows.Count > 0){
+                        DialogResult result = TS_MessageBoxEngine.TS_MessageBox(this, 11, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_merge_question"), "\n\n", "\n\n"));
+                        mergeData = result == DialogResult.Yes;
+                    }
+                    await ImportCSVFromFile(DataMainTable, ofd.FileName, mergeData);
                 }
             }
         }
-        private async void ImportAstelFromFile(string filePath){
+        // IMPORT ASTEL
+        // ==========================================================================================
+        private async void ImportAstelFromFile(string filePath, bool mergeData){
             TSGetLangs software_lang = new TSGetLangs(lang_path);
-            if (DataMainTable.Rows.Count > 0){
-                DialogResult import_warning = TS_MessageBoxEngine.TS_MessageBox(this, 6, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_warning"), "\n\n", "\n\n"));
-                if (import_warning != DialogResult.Yes) return;
-            }
+            int addedCount = 0;
+            int skippedCount = 0;
+            int keyMismatchCount = 0;
             try{
                 Text = TS_VersionEngine.TS_SoftwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
-                //
-                string target_data = Path.Combine(ts_session_root_path, "AstelData.xml");
-                File.Copy(filePath, target_data, true);
-                //
+                string target_data = Path.Combine(ts_session_root_path, ts_data_file_name);
+                if (!mergeData){
+                    // Overwrite Mode
+                    File.Copy(filePath, target_data, true);
+                    var importDoc = XDocument.Load(filePath);
+                    var importRoot = importDoc.Element("Datas");
+                    if (importRoot != null){
+                        addedCount = importRoot.Elements("Data").Count();
+                        skippedCount = 0;
+                    }
+                }else{
+                    // Merge Mode
+                    if (!File.Exists(ts_data_xml_path)){
+                        await InitializeLoaderSecurityAsync();
+                    }
+                    byte[] importKey = TS_AES_Encryption.ExtractKeyFromAstelFile(filePath);
+                    if (importKey == null){
+                        TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_key_extract_failed"), "\n\n"));
+                        return;
+                    }
+                    var currentDoc = XDocument.Load(ts_data_xml_path);
+                    var currentRoot = currentDoc.Element("Datas");
+                    HashSet<string> existingKeys = new HashSet<string>();
+                    foreach (var d in currentRoot.Elements("Data")){
+                        try{
+                            string service = TS_AES_Encryption.TS_AES_Decrypt(d.Element("Service")?.Value ?? "");
+                            string email = TS_AES_Encryption.TS_AES_Decrypt(d.Element("Email")?.Value ?? "");
+                            string url = TS_AES_Encryption.TS_AES_Decrypt(d.Element("Url")?.Value ?? "");
+                            string key = $"{service}|{email}|{url}";
+                            existingKeys.Add(key);
+                        }catch (Exception){
+                            // Debug.WriteLine($"Decrypt error in existing data: {ex.Message}");
+                        }
+                    }
+                    var importDoc = XDocument.Load(filePath);
+                    var importRoot = importDoc.Element("Datas");
+                    int nextId = GetMaxIdFromXml() + 1;
+                    foreach (var data in importRoot.Elements("Data")){
+                        try{
+                            string service = "", email = "", url = "", password = "", note = "", passChangeDate = "";
+                            TS_AES_Encryption.WithTempKey(importKey, () =>{
+                                service = TS_AES_Encryption.TS_AES_Decrypt(data.Element("Service")?.Value ?? "");
+                                email = TS_AES_Encryption.TS_AES_Decrypt(data.Element("Email")?.Value ?? "");
+                                url = TS_AES_Encryption.TS_AES_Decrypt(data.Element("Url")?.Value ?? "");
+                                password = TS_AES_Encryption.TS_AES_Decrypt(data.Element("Password")?.Value ?? "");
+                                note = TS_AES_Encryption.TS_AES_Decrypt(data.Element("Note")?.Value ?? "");
+                                passChangeDate = TS_AES_Encryption.TS_AES_Decrypt(data.Element("PassChangeDate")?.Value ?? "");
+                                return 0;
+                            });
+                            if (string.IsNullOrEmpty(passChangeDate)){
+                                passChangeDate = DateTime.Now.ToString("dd.MM.yyyy - HH:mm");
+                            }
+                            string key = $"{service}|{email}|{url}";
+                            if (existingKeys.Contains(key)){
+                                skippedCount++;
+                                continue;
+                            }
+                            existingKeys.Add(key);
+                            currentRoot.Add(new XElement("Data",
+                                new XElement("ID", nextId++),
+                                new XElement("Service", TS_AES_Encryption.TS_AES_Encrypt(service)),
+                                new XElement("Email", TS_AES_Encryption.TS_AES_Encrypt(email)),
+                                new XElement("Password", TS_AES_Encryption.TS_AES_Encrypt(password)),
+                                new XElement("Url", TS_AES_Encryption.TS_AES_Encrypt(url)),
+                                new XElement("Note", TS_AES_Encryption.TS_AES_Encrypt(note)),
+                                new XElement("PassChangeDate", TS_AES_Encryption.TS_AES_Encrypt(passChangeDate))
+                            ));
+                            addedCount++;
+                        }catch (Exception){
+                            // Debug.WriteLine($"Import error: {ex.Message}");
+                            keyMismatchCount++;
+                        }
+                    }
+                    Array.Clear(importKey, 0, importKey.Length);
+                    currentDoc.Save(ts_data_xml_path);
+                }
                 bool fileReady = false;
                 int attempts = 0;
                 while (!fileReady && attempts < 10){
@@ -1661,7 +1877,6 @@ namespace Astel{
                         Thread.Sleep(50);
                     }
                 }
-                //
                 TSSettingsModule software_read_settings = new TSSettingsModule(ts_session_file);
                 var ts_xDoc = XDocument.Load(ts_data_xml_path);
                 var root = ts_xDoc.Element("Datas");
@@ -1671,62 +1886,99 @@ namespace Astel{
                 //
                 await InitializeLoaderSecurityAsync();
                 AstelLoadXMLData();
+                DataMainTable.ClearSelection();
                 NodeClearInput();
                 //
-                TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("DataTransfer", "hdt_import_success"));
+                string inf_message;
+                if (addedCount == 0 && skippedCount == 0 && keyMismatchCount == 0){
+                    inf_message = software_lang.TSReadLangs("DataTransfer", "hdt_import_no_data");
+                }else if (addedCount == 0 && skippedCount > 0 && keyMismatchCount == 0){
+                    inf_message = software_lang.TSReadLangs("DataTransfer", "hdt_import_duplicate_data");
+                }else if (keyMismatchCount > 0){
+                    inf_message = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_key_mismatch"), "\n\n", keyMismatchCount, "\n\n", addedCount, "\n", skippedCount);
+                }else{
+                    inf_message = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_success"), "\n\n", addedCount, "\n", skippedCount);
+                }
+                TS_MessageBoxEngine.TS_MessageBox(this, addedCount == 0 ? 2 : 1, inf_message);
             }catch (Exception ex){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_failed"), "\n", "\n\n", ex.Message));
             }finally{
                 Text = TS_VersionEngine.TS_SoftwareVersion(0);
             }
         }
-        private async Task ImportCSVFromFile(DataGridView dgv, string filePath){
+        // IMPORT CSV
+        // ==========================================================================================
+        private async Task ImportCSVFromFile(DataGridView dgv, string filePath, bool mergeData){
             TSGetLangs software_lang = new TSGetLangs(lang_path);
-            if (DataMainTable.Rows.Count > 0){
-                DialogResult import_warning = TS_MessageBoxEngine.TS_MessageBox(this, 6, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_warning"), "\n\n", "\n\n"));
-                if (import_warning != DialogResult.Yes) return;
-            }
+            int addedCount = 0;
+            int skippedCount = 0;
+            int invalidRowCount = 0;
             try{
                 if (!(dgv.DataSource is DataTable dt)){
                     return;
                 }
-                //
                 Text = TS_VersionEngine.TS_SoftwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
-                //
-                dt.Rows.Clear();
                 string[] lines = File.ReadAllLines(filePath, Encoding.UTF8);
-                if (lines.Length <= 1) return;
-                if (!File.Exists(ts_data_xml_path)) await InitializeLoaderSecurityAsync();
+                if (lines.Length <= 1){
+                    TS_MessageBoxEngine.TS_MessageBox(this, 2, software_lang.TSReadLangs("DataTransfer", "hdt_import_empty_file"));
+                    return;
+                }
+                if (!File.Exists(ts_data_xml_path)){
+                    await InitializeLoaderSecurityAsync();
+                }
                 var ts_xDoc = XDocument.Load(ts_data_xml_path);
                 var ts_xml_root = ts_xDoc.Element("Datas");
-                int currentMaxId = GetMaxIdFromXml();
-                int nextId = currentMaxId + 1;
+                HashSet<string> existingKeys = new HashSet<string>();
+                if (!mergeData){
+                    // Overwrite mode
+                    ts_xml_root.RemoveAll();
+                    dt.Rows.Clear();
+                }else{
+                    // Merge mode
+                    foreach (DataRow r in dt.Rows){
+                        string key = $"{r["Service"]}|{r["Email"]}|{r["Url"]}";
+                        existingKeys.Add(key);
+                    }
+                }
+                int nextId = mergeData ? GetMaxIdFromXml() + 1 : 1;
+                int totalDataRows = lines.Length - 1;
                 foreach (string line in lines.Skip(1)){
-                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    if (string.IsNullOrWhiteSpace(line)){
+                        invalidRowCount++;
+                        continue;
+                    }
                     string[] values = ParseCsvLine(line);
-                    if (values.Length >= 4){
-                        string __service = values[0].Trim();
-                        string __url = values[1].Trim();
-                        string __email = values[2].Trim();
-                        string __password = values[3].Trim();
-                        string __note = values.Length > 4 ? values[4].Trim() : "";
-                        string __passChangeDate = DateTime.Now.ToString("dd.MM.yyyy - HH:mm");
-                        //
-                        if (string.IsNullOrEmpty(__service) || string.IsNullOrEmpty(__email) || string.IsNullOrEmpty(__password)){
-                            continue;
-                        }
-                        //
-                        DataRow row = dt.NewRow();
-                        row["ID"] = nextId;
-                        row["Service"] = __service;
-                        row["Email"] = __email;
-                        row["Password"] = __password;
-                        row["Url"] = __url;
-                        row["Note"] = __note;
-                        row["PassChangeDate"] = __passChangeDate;
-                        dt.Rows.Add(row);
-                        //
-                        ts_xml_root.Add(new XElement("Data",
+                    if (values.Length < 4){
+                        invalidRowCount++;
+                        continue;
+                    }
+                    string __service = values[0].Trim();
+                    string __url = values[1].Trim();
+                    string __email = values[2].Trim();
+                    string __password = values[3].Trim();
+                    string __note = values.Length > 4 ? values[4].Trim() : "";
+                    string __passChangeDate = DateTime.Now.ToString("dd.MM.yyyy - HH:mm");
+                    if (string.IsNullOrEmpty(__service) || string.IsNullOrEmpty(__email) || string.IsNullOrEmpty(__password)){
+                        invalidRowCount++;
+                        continue;
+                    }
+                    string key = $"{__service}|{__email}|{__url}";
+                    if (mergeData && existingKeys.Contains(key)){
+                        skippedCount++;
+                        continue;
+                    }
+                    existingKeys.Add(key);
+                    DataRow row = dt.NewRow();
+                    row["ID"] = nextId;
+                    row["Service"] = __service;
+                    row["Email"] = __email;
+                    row["Password"] = __password;
+                    row["Url"] = __url;
+                    row["Note"] = __note;
+                    row["PassChangeDate"] = __passChangeDate;
+                    dt.Rows.Add(row);
+                    ts_xml_root.Add(
+                        new XElement("Data",
                             new XElement("ID", nextId),
                             new XElement("Service", TS_AES_Encryption.TS_AES_Encrypt(__service)),
                             new XElement("Email", TS_AES_Encryption.TS_AES_Encrypt(__email)),
@@ -1734,14 +1986,47 @@ namespace Astel{
                             new XElement("Url", TS_AES_Encryption.TS_AES_Encrypt(__url)),
                             new XElement("Note", TS_AES_Encryption.TS_AES_Encrypt(__note)),
                             new XElement("PassChangeDate", TS_AES_Encryption.TS_AES_Encrypt(__passChangeDate))
-                        ));
-                        nextId++;
-                    }
+                        )
+                    );
+                    nextId++;
+                    addedCount++;
                 }
                 ts_xDoc.Save(ts_data_xml_path);
                 AstelLoadXMLData();
+                DataMainTable.ClearSelection();
                 dgv.ClearSelection();
-                TS_MessageBoxEngine.TS_MessageBox(this, 1, software_lang.TSReadLangs("DataTransfer", "hdt_import_success"));
+                string inf_message;
+                int inf_messageType = 1;
+                if (addedCount == 0 && totalDataRows > 0){
+                    if (invalidRowCount == totalDataRows){
+                        inf_message = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_all_rows_invalid"), totalDataRows, "\n\n", "\n\n");
+                        inf_messageType = 2;
+                    }else if (skippedCount > 0){
+                        inf_message = software_lang.TSReadLangs("DataTransfer", "hdt_import_duplicate_data");
+                        inf_messageType = 2;
+                    }else{
+                        inf_message = software_lang.TSReadLangs("DataTransfer", "hdt_import_no_data_added");
+                        inf_messageType = 2;
+                    }
+                }else if (addedCount > 0){
+                    if (!mergeData){
+                        if (invalidRowCount > 0){
+                            inf_message = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_overwrite_with_invalid"), addedCount, "\n\n", "\n\n", invalidRowCount);
+                        }else{
+                            inf_message = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_overwrite_success"), addedCount, "\n\n");
+                        }
+                    }else{
+                        if (invalidRowCount > 0){
+                            inf_message = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_success_with_invalid"), addedCount, "\n\n", skippedCount, "\n\n", invalidRowCount);
+                        }else{
+                            inf_message = string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_success"), "\n\n", addedCount, "\n", skippedCount);
+                        }
+                    }
+                }else{
+                    inf_message = software_lang.TSReadLangs("DataTransfer", "hdt_import_no_changes");
+                    inf_messageType = 1;
+                }
+                TS_MessageBoxEngine.TS_MessageBox(this, inf_messageType, inf_message);
             }catch (Exception ex){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_failed"), "\n", "\n\n", ex.Message));
             }finally{
@@ -1749,12 +2034,13 @@ namespace Astel{
             }
         }
         // DRAG & DROP IMPORT DATA FEATURE
-        // ==========================
+        // ======================================================================================================
         private void Astel_DragEnter(object sender, DragEventArgs e){
             if (e.Data.GetDataPresent(DataFormats.FileDrop)){
                 string[] astel_file = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (astel_file.Length == 1 && !Directory.Exists(astel_file[0])){
-                    if (Path.GetExtension(astel_file[0]).ToLower() == ts_data_backup_extension_astel || Path.GetExtension(astel_file[0]).ToLower() == ts_data_backup_extension_csv){
+                    string ext = Path.GetExtension(astel_file[0]).ToLower();
+                    if (ext == ts_data_backup_extension_astel || ext == ts_data_backup_extension_csv){
                         e.Effect = DragDropEffects.Copy;
                         return;
                     }
@@ -1763,13 +2049,20 @@ namespace Astel{
             e.Effect = DragDropEffects.None;
         }
         private async void Astel_DragDrop(object sender, DragEventArgs e){
-            if (e.Data.GetDataPresent(DataFormats.FileDrop)){
-                var astel_file = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (astel_file.Length == 1 && Path.GetExtension(astel_file[0]).ToLower() == ts_data_backup_extension_astel){
-                    ImportAstelFromFile(astel_file[0]);
-                }else if (astel_file.Length == 1 && Path.GetExtension(astel_file[0]).ToLower() == ts_data_backup_extension_csv){
-                    await ImportCSVFromFile(DataMainTable, astel_file[0]);
-                }
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            var astel_file = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (astel_file.Length != 1) return;
+            string ext = Path.GetExtension(astel_file[0]).ToLower();
+            bool mergeData = false;
+            if (DataMainTable.Rows.Count > 0){
+                TSGetLangs software_lang = new TSGetLangs(lang_path);
+                DialogResult result = TS_MessageBoxEngine.TS_MessageBox(this, 11, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_merge_question"), "\n\n", "\n\n"));
+                mergeData = result == DialogResult.Yes;
+            }
+            if (ext == ts_data_backup_extension_astel){
+                ImportAstelFromFile(astel_file[0], mergeData);
+            }else if (ext == ts_data_backup_extension_csv){
+                await ImportCSVFromFile(DataMainTable, astel_file[0], mergeData);
             }
         }
         // TS TOOL LAUNCHER MODULE

@@ -35,7 +35,7 @@
             this.TxtPasswordRepeat = new System.Windows.Forms.TextBox();
             this.LabelPassword = new System.Windows.Forms.Label();
             this.TxtPassword = new System.Windows.Forms.TextBox();
-            this.LabelHeader = new System.Windows.Forms.Label();
+            this.LabelHeader = new Astel.TSCustomLabel();
             this.Panel_BG.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -159,6 +159,7 @@
             // LabelHeader
             // 
             this.LabelHeader.BackColor = System.Drawing.Color.White;
+            this.LabelHeader.BorderRadius = 5;
             this.LabelHeader.Dock = System.Windows.Forms.DockStyle.Top;
             this.LabelHeader.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.LabelHeader.ImeMode = System.Windows.Forms.ImeMode.NoControl;
@@ -201,6 +202,6 @@
         private System.Windows.Forms.TextBox TxtPasswordRepeat;
         internal System.Windows.Forms.Label LabelPassword;
         private System.Windows.Forms.TextBox TxtPassword;
-        internal System.Windows.Forms.Label LabelHeader;
+        internal TSCustomLabel LabelHeader;
     }
 }

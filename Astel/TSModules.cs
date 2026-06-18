@@ -85,7 +85,22 @@ namespace Astel{
                 { 7, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Error) },              // Yes/No and Error
                 { 8, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) },        // Retry/Cancel and Error
                 { 9, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) },     // Yes/No/Cancel and Quest
-                { 10, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information) }  // Yes/No/Cancel and Info
+                { 10, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information) }, // Yes/No/Cancel and Info
+                { 11, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning) },      // Yes/No/Cancel and Warning
+                // OK / Cancel combinations
+                { 12, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Question) },       // OK/Cancel and Question
+                { 13, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Information) },    // OK/Cancel and Info
+                { 14, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) },        // OK/Cancel and Warning
+                { 15, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Error) },          // OK/Cancel and Error
+                // Retry / Cancel additional variants
+                { 16, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Information) }, // Retry/Cancel and Info
+                { 17, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Warning) },     // Retry/Cancel and Warning
+                { 18, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Question) },    // Retry/Cancel and Question
+                // Abort / Retry / Ignore combinations
+                { 19, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Question) },    // Abort/Retry/Ignore and Question
+                { 20, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Information) }, // Abort/Retry/Ignore and Info
+                { 21, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Warning) },     // Abort/Retry/Ignore and Warning
+                { 22, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error) }        // Abort/Retry/Ignore and Error
             };
             public static DialogResult TS_MessageBox(Form m_form, int m_mode, string m_message, string m_title = ""){
                 if (m_form != null && m_form.InvokeRequired){
@@ -510,7 +525,7 @@ namespace Astel{
             // LIGHT THEME COLORS
             // ====================================
             public static readonly Dictionary<string, Color> LightTheme = new Dictionary<string, Color>{
-                // TS PRELOADER
+                // TS TEMPLATE
                 { "TSBT_BGColor", Color.FromArgb(236, 242, 248) },
                 { "TSBT_BGColor2", Color.White },
                 { "TSBT_AccentColor", Color.FromArgb(28, 122, 25) },
@@ -550,7 +565,7 @@ namespace Astel{
             // DARK THEME COLORS
             // ====================================
             public static readonly Dictionary<string, Color> DarkTheme = new Dictionary<string, Color>{
-                // TS PRELOADER
+                // TS TEMPLATE
                 { "TSBT_BGColor", Color.FromArgb(27, 30, 34) },
                 { "TSBT_BGColor2", Color.FromArgb(34, 38, 44) },
                 { "TSBT_AccentColor", Color.FromArgb(38, 187, 33) },

@@ -37,7 +37,7 @@
             this.LabelCurrentPassword = new System.Windows.Forms.Label();
             this.TxtCurrentPassword = new System.Windows.Forms.TextBox();
             this.BtnChangePassword = new Astel.TSCustomButton();
-            this.LabelHeader = new System.Windows.Forms.Label();
+            this.LabelHeader = new Astel.TSCustomLabel();
             this.Panel_BG.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -189,6 +189,7 @@
             // LabelHeader
             // 
             this.LabelHeader.BackColor = System.Drawing.Color.White;
+            this.LabelHeader.BorderRadius = 5;
             this.LabelHeader.Dock = System.Windows.Forms.DockStyle.Top;
             this.LabelHeader.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
             this.LabelHeader.ImeMode = System.Windows.Forms.ImeMode.NoControl;
@@ -232,6 +233,6 @@
         internal System.Windows.Forms.Label LabelCurrentPassword;
         private System.Windows.Forms.TextBox TxtCurrentPassword;
         private TSCustomButton BtnChangePassword;
-        internal System.Windows.Forms.Label LabelHeader;
+        internal TSCustomLabel LabelHeader;
     }
 }
