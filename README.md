@@ -20,6 +20,7 @@ You can support this project by making a donation to help ensure its sustainabil
 
 * **Privacy First:** Your data stays on your machine; no information is transferred to external servers.
 * **Pure Performance:** Developed exclusively in **C# and .NET Framework** with no external libraries or dependencies.
+* **Portable:** No installation required. Just download it, extract all files from the ZIP, select the appropriate architecture, and run it.
 * **DPAPI Session Encryption:** Session information is encrypted using Windows Data Protection API (DPAPI), ensuring data can only be decrypted on the same user account and the same machine.
 * **Strong Brute-Force Protection:** Master passwords and sensitive data are secured using PBKDF2-HMAC-SHA512 with 210,000 iterations and a unique salt, making brute-force attacks extremely difficult.
 * **Cryptographically Secure Password Generator:** Uses `RandomNumberGenerator`, implements Rejection Sampling to eliminate modulo bias, and applies Fisher-Yates Shuffle for secure character randomization. Each generated password guarantees at least one uppercase letter, one lowercase letter, one digit, and one symbol, with a random length between 10-18 characters.
