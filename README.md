@@ -37,11 +37,11 @@ You can support this project by making a donation to help ensure its sustainabil
 
 ## Interface Preview
 
-<img width="1010" height="633" alt="Astel UI" src="https://github.com/user-attachments/assets/ca285e6e-33de-475b-b58f-5d39de2a5e85" />
+<img width="1010" height="633" alt="Astel UI" src="https://github.com/user-attachments/assets/4e22aeca-fc45-4cb2-a675-8133c8439b97" />
 
 ## Password Generator
 
-<img width="586" height="523" alt="Astel Password Generator" src="https://github.com/user-attachments/assets/afe2d16e-00af-4fc8-b8ac-171bbc8771eb" />
+<img width="586" height="523" alt="Astel Password Generator" src="https://github.com/user-attachments/assets/0275dd5d-6ec3-461c-8e3c-8012bc706a96" />
 
 ---
 
