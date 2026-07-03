@@ -37,7 +37,6 @@ namespace Astel{
     public partial class AstelMain : Form{
         public AstelMain(){
             InitializeComponent();
-            CheckForIllegalCrossThreadCalls = false;
             // LANGUAGE SET MODES
             // ==================
             arabicToolStripMenuItem.Tag = "ar";
@@ -198,7 +197,7 @@ namespace Astel{
             BtnCopyUrl.Height = TxtUrl.Height + 2;
             BtnRndPssGen.Height = TxtPassword.Height + 2;
             BtnOpenUrl.Height = TxtUrl.Height + 2;
-            // THEME - LANG - VIEW MODE PRELOADER
+            // THEME - LANG - STARTUP - BACKUP - SAFETY WARNINGS - PASSWORD MASK MODE PRELOADER
             // ======================================================================================================
             TSSettingsModule software_read_settings = new TSSettingsModule(ts_sf);
             //
@@ -269,7 +268,7 @@ namespace Astel{
             DataMainTable.Columns.Clear();
             // LOGIN SECURITY
             await InitializeLoaderSecurityAsync();
-            // LOAD
+            // LOAD MODULE
             AstelLoadXMLData();
             DGVColumnFormatter();
             DataMainTable.ClearSelection();
@@ -1112,32 +1111,32 @@ namespace Astel{
                     TSImageRenderer(BtnRndPssGen, Properties.Resources.ct_generate_dark, 12);
                     TSImageRenderer(BtnOpenUrl, Properties.Resources.ct_link_mc_dark, 12);
                 }
-                header_colors[0] = TS_ThemeEngine.ColorMode(theme, "HeaderBGColor");
-                header_colors[1] = TS_ThemeEngine.ColorMode(theme, "HeaderFEColor");
-                header_colors[2] = TS_ThemeEngine.ColorMode(theme, "AccentColor");
+                header_colors[0] = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
+                header_colors[1] = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
+                header_colors[2] = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
                 HeaderMenu.Renderer = new HeaderMenuColors();
                 // TOOLTIP
-                MainToolTip.ForeColor = TS_ThemeEngine.ColorMode(theme, "HeaderFEColor2");
-                MainToolTip.BackColor = TS_ThemeEngine.ColorMode(theme, "HeaderBGColor2");
+                MainToolTip.ForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
+                MainToolTip.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor");
                 // HEADER MENU
-                var bg = TS_ThemeEngine.ColorMode(theme, "HeaderBGColor2");
-                var fg = TS_ThemeEngine.ColorMode(theme, "HeaderFEColor2");
+                var bg = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor");
+                var fg = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
                 HeaderMenu.ForeColor = fg;
                 HeaderMenu.BackColor = bg;
                 SetMenuStripColors(HeaderMenu, bg, fg);
                 // CONTENT BG
-                BackColor = TS_ThemeEngine.ColorMode(theme, "PageContainerBGColor");
+                BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor");
                 // ALL LABEL
                 foreach (Control control in Panel_Footer.Controls){
                     if (control is Label label){
-                        label.ForeColor = TS_ThemeEngine.ColorMode(theme, "ContentLabelLeftColor");
+                        label.ForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
                     }
                 }
                 // ALL TEXTBOX
                 foreach (Control control in Panel_Footer.Controls){
                     if (control is TextBox textbox){
-                        textbox.BackColor = TS_ThemeEngine.ColorMode(theme, "TextboxBGColor");
-                        textbox.ForeColor = TS_ThemeEngine.ColorMode(theme, "TextboxFEColor");
+                        textbox.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
+                        textbox.ForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
                     }
                 }
                 // ALL BUTTON
@@ -1145,33 +1144,33 @@ namespace Astel{
                 foreach (Control control in combinedBtnsControls){
                     if (control is Button button){
                         button.ForeColor = TS_ThemeEngine.ColorMode(theme, "DynamicThemeActiveBtnBGColor");
-                        button.BackColor = TS_ThemeEngine.ColorMode(theme, "AccentColor");
-                        button.FlatAppearance.BorderColor = TS_ThemeEngine.ColorMode(theme, "AccentColor");
-                        button.FlatAppearance.MouseDownBackColor = TS_ThemeEngine.ColorMode(theme, "AccentColor");
+                        button.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
+                        button.FlatAppearance.BorderColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
+                        button.FlatAppearance.MouseDownBackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
                         button.FlatAppearance.MouseOverBackColor = TS_ThemeEngine.ColorMode(theme, "AccentColorHover");
                     }
                 }
-                CmbService.BackColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBGColor");
-                CmbService.ForeColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxFEColor");
-                CmbService.HoverBackColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBGColor");
-                CmbService.ButtonColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBGColor2");
-                CmbService.ArrowColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxFEColor");
-                CmbService.HoverButtonColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBGColor2");
+                CmbService.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
+                CmbService.ForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
+                CmbService.HoverBackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
+                CmbService.ButtonColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor");
+                CmbService.ArrowColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
+                CmbService.HoverButtonColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor");
                 CmbService.BorderColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBorderColor");
                 CmbService.FocusedBorderColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBorderColor");
-                CmbService.HoverForeColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxFEColor");
-                CmbService.SelectedBackColor = TS_ThemeEngine.ColorMode(theme, "AccentColor");
-                CmbService.SelectedForeColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBGColor");
+                CmbService.HoverForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
+                CmbService.SelectedBackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
+                CmbService.SelectedForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
                 // DATA TABLE
-                DataMainTable.BackgroundColor = TS_ThemeEngine.ColorMode(theme, "DataGridBGColor");
+                DataMainTable.BackgroundColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
                 DataMainTable.GridColor = TS_ThemeEngine.ColorMode(theme, "DataGridGridColor");
-                DataMainTable.DefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "DataGridBGColor");
-                DataMainTable.DefaultCellStyle.ForeColor = TS_ThemeEngine.ColorMode(theme, "DataGridFEColor");
-                DataMainTable.AlternatingRowsDefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "DataGridAlternatingColor");
-                DataMainTable.ColumnHeadersDefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "DataGridHeaderBGColor");
-                DataMainTable.ColumnHeadersDefaultCellStyle.SelectionBackColor = TS_ThemeEngine.ColorMode(theme, "DataGridHeaderBGColor");
+                DataMainTable.DefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
+                DataMainTable.DefaultCellStyle.ForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
+                DataMainTable.AlternatingRowsDefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor");
+                DataMainTable.ColumnHeadersDefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
+                DataMainTable.ColumnHeadersDefaultCellStyle.SelectionBackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
                 DataMainTable.ColumnHeadersDefaultCellStyle.ForeColor = TS_ThemeEngine.ColorMode(theme, "DataGridHeaderFEColor");
-                DataMainTable.DefaultCellStyle.SelectionBackColor = TS_ThemeEngine.ColorMode(theme, "DataGridHeaderBGColor");
+                DataMainTable.DefaultCellStyle.SelectionBackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
                 DataMainTable.DefaultCellStyle.SelectionForeColor = TS_ThemeEngine.ColorMode(theme, "DataGridHeaderFEColor");
                 //
                 Software_other_page_preloader();
@@ -1363,7 +1362,7 @@ namespace Astel{
                 DeleteBtn.Text = " " + software_lang.TSReadLangs("AstelHome", "ah_button_delete");
                 //
                 Software_other_page_preloader();
-            }catch (Exception ex) { MessageBox.Show(ex.Message); }
+            }catch (Exception){ }
         }
         // DGV COLUMN FORMATTER
         // ============================
@@ -1404,7 +1403,7 @@ namespace Astel{
                 software_about.Name = software_about_name;
                 if (Application.OpenForms[software_about_name] != null){
                     software_about = (AstelAbout)Application.OpenForms[software_about_name];
-                    software_about.About_preloader();
+                    software_about.About_Preloader();
                 }
             }catch (Exception){ }
         }
@@ -1531,8 +1530,7 @@ namespace Astel{
             }
         }
         private void AutoDataBackupOffToolStripMenuItem_Click(object sender, EventArgs e){
-            if (auto_backup_status != 0){ auto_backup_status = 0; Auto_backup_mode_settings("0"); Select_abackup_mode_active(sender); StopAutoBackup(); }
-            }
+            if (auto_backup_status != 0){ auto_backup_status = 0; Auto_backup_mode_settings("0"); Select_abackup_mode_active(sender); StopAutoBackup(); } }
         private void Auto_backup_mode_settings(string get_abackup_value){
             try{
                 TSSettingsModule software_setting_save = new TSSettingsModule(ts_sf);
@@ -1756,7 +1754,10 @@ namespace Astel{
                     bool mergeData = false;
                     if (DataMainTable.Rows.Count > 0){
                         DialogResult result = TS_MessageBoxEngine.TS_MessageBox(this, 11, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_merge_question"), "\n\n", "\n\n"));
-                        mergeData = result == DialogResult.Yes;
+                        if (result != DialogResult.Yes && result != DialogResult.No){
+                            return;
+                        }
+                        mergeData = (result == DialogResult.Yes);
                     }
                     ImportAstelFromFile(ofd.FileName, mergeData);
                 }
@@ -1774,7 +1775,10 @@ namespace Astel{
                     bool mergeData = false;
                     if (DataMainTable.Rows.Count > 0){
                         DialogResult result = TS_MessageBoxEngine.TS_MessageBox(this, 11, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_merge_question"), "\n\n", "\n\n"));
-                        mergeData = result == DialogResult.Yes;
+                        if (result != DialogResult.Yes && result != DialogResult.No){
+                            return;
+                        }
+                        mergeData = (result == DialogResult.Yes);
                     }
                     await ImportCSVFromFile(DataMainTable, ofd.FileName, mergeData);
                 }
@@ -1928,13 +1932,17 @@ namespace Astel{
                 }
                 var ts_xDoc = XDocument.Load(ts_data_xml_path);
                 var ts_xml_root = ts_xDoc.Element("Datas");
+                string existingEK = ts_xml_root.Attribute("EK")?.Value;
+                string existingST = ts_xml_root.Attribute("ST")?.Value;
+                string existingSV = ts_xml_root.Attribute("SV")?.Value;
+                string existingCL = ts_xml_root.Attribute("CL")?.Value;
                 HashSet<string> existingKeys = new HashSet<string>();
                 if (!mergeData){
-                    // Overwrite mode
+                    // Overwrite Mode
                     ts_xml_root.RemoveAll();
                     dt.Rows.Clear();
                 }else{
-                    // Merge mode
+                    // Merge Mode
                     foreach (DataRow r in dt.Rows){
                         string key = $"{r["Service"]}|{r["Email"]}|{r["Url"]}";
                         existingKeys.Add(key);
@@ -1991,7 +1999,16 @@ namespace Astel{
                     nextId++;
                     addedCount++;
                 }
+                if (!string.IsNullOrEmpty(existingEK))
+                    ts_xml_root.SetAttributeValue("EK", existingEK);
+                if (!string.IsNullOrEmpty(existingST))
+                    ts_xml_root.SetAttributeValue("ST", existingST);
+                if (!string.IsNullOrEmpty(existingSV))
+                    ts_xml_root.SetAttributeValue("SV", existingSV);
+                if (!string.IsNullOrEmpty(existingCL))
+                    ts_xml_root.SetAttributeValue("CL", existingCL);
                 ts_xDoc.Save(ts_data_xml_path);
+                await InitializeLoaderSecurityAsync();
                 AstelLoadXMLData();
                 DataMainTable.ClearSelection();
                 dgv.ClearSelection();
@@ -2029,7 +2046,8 @@ namespace Astel{
                 TS_MessageBoxEngine.TS_MessageBox(this, inf_messageType, inf_message);
             }catch (Exception ex){
                 TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_failed"), "\n", "\n\n", ex.Message));
-            }finally{
+            }
+            finally{
                 Text = TS_VersionEngine.TS_SoftwareVersion(0);
             }
         }
@@ -2057,7 +2075,10 @@ namespace Astel{
             if (DataMainTable.Rows.Count > 0){
                 TSGetLangs software_lang = new TSGetLangs(lang_path);
                 DialogResult result = TS_MessageBoxEngine.TS_MessageBox(this, 11, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_merge_question"), "\n\n", "\n\n"));
-                mergeData = result == DialogResult.Yes;
+                if (result != DialogResult.Yes && result != DialogResult.No){
+                    return;
+                }
+                mergeData = (result == DialogResult.Yes);
             }
             if (ext == ts_data_backup_extension_astel){
                 ImportAstelFromFile(astel_file[0], mergeData);

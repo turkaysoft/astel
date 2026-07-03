@@ -76,31 +76,31 @@ namespace Astel{
         // ======================================================================================================
         public static class TS_MessageBoxEngine{
             private static readonly Dictionary<int, KeyValuePair<MessageBoxButtons, MessageBoxIcon>> TSMessageBoxConfig = new Dictionary<int, KeyValuePair<MessageBoxButtons, MessageBoxIcon>>(){
-                { 1, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OK, MessageBoxIcon.Information) },           // Ok and Info
-                { 2, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OK, MessageBoxIcon.Warning) },               // Ok and Warning
-                { 3, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OK, MessageBoxIcon.Error) },                 // Ok and Error
-                { 4, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Question) },           // Yes/No and Quest
-                { 5, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Information) },        // Yes/No and Info
-                { 6, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Warning) },            // Yes/No and Warning
-                { 7, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Error) },              // Yes/No and Error
-                { 8, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) },        // Retry/Cancel and Error
-                { 9, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) },     // Yes/No/Cancel and Quest
-                { 10, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information) }, // Yes/No/Cancel and Info
-                { 11, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning) },      // Yes/No/Cancel and Warning
+                { 1, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OK, MessageBoxIcon.Information) },               // Ok and Info
+                { 2, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OK, MessageBoxIcon.Warning) },                   // Ok and Warning
+                { 3, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OK, MessageBoxIcon.Error) },                     // Ok and Error
+                { 4, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Question) },               // Yes/No and Quest
+                { 5, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Information) },            // Yes/No and Info
+                { 6, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Warning) },                // Yes/No and Warning
+                { 7, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNo, MessageBoxIcon.Error) },                  // Yes/No and Error
+                { 8, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) },            // Retry/Cancel and Error
+                { 9, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) },         // Yes/No/Cancel and Quest
+                { 10, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information) },     // Yes/No/Cancel and Info
+                { 11, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning) },         // Yes/No/Cancel and Warning
                 // OK / Cancel combinations
-                { 12, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Question) },       // OK/Cancel and Question
-                { 13, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Information) },    // OK/Cancel and Info
-                { 14, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) },        // OK/Cancel and Warning
-                { 15, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Error) },          // OK/Cancel and Error
+                { 12, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Question) },           // OK/Cancel and Question
+                { 13, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Information) },        // OK/Cancel and Info
+                { 14, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) },            // OK/Cancel and Warning
+                { 15, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.OKCancel, MessageBoxIcon.Error) },              // OK/Cancel and Error
                 // Retry / Cancel additional variants
-                { 16, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Information) }, // Retry/Cancel and Info
-                { 17, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Warning) },     // Retry/Cancel and Warning
-                { 18, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Question) },    // Retry/Cancel and Question
+                { 16, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Information) },     // Retry/Cancel and Info
+                { 17, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Warning) },         // Retry/Cancel and Warning
+                { 18, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.RetryCancel, MessageBoxIcon.Question) },        // Retry/Cancel and Question
                 // Abort / Retry / Ignore combinations
-                { 19, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Question) },    // Abort/Retry/Ignore and Question
-                { 20, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Information) }, // Abort/Retry/Ignore and Info
-                { 21, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Warning) },     // Abort/Retry/Ignore and Warning
-                { 22, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error) }        // Abort/Retry/Ignore and Error
+                { 19, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Question) },   // Abort/Retry/Ignore and Question
+                { 20, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Information) },// Abort/Retry/Ignore and Info
+                { 21, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Warning) },    // Abort/Retry/Ignore and Warning
+                { 22, new KeyValuePair<MessageBoxButtons, MessageBoxIcon>(MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error) }       // Abort/Retry/Ignore and Error
             };
             public static DialogResult TS_MessageBox(Form m_form, int m_mode, string m_message, string m_title = ""){
                 if (m_form != null && m_form.InvokeRequired){
@@ -525,82 +525,48 @@ namespace Astel{
             // LIGHT THEME COLORS
             // ====================================
             public static readonly Dictionary<string, Color> LightTheme = new Dictionary<string, Color>{
-                // TS TEMPLATE
+                // BG & PANELS
                 { "TSBT_BGColor", Color.FromArgb(236, 242, 248) },
                 { "TSBT_BGColor2", Color.White },
+                // ACCENT COLORS
                 { "TSBT_AccentColor", Color.FromArgb(28, 122, 25) },
+                { "AccentColorHover", Color.FromArgb(33, 136, 29) },
+                // FOREGROUND / TEXT
                 { "TSBT_LabelColor1", Color.FromArgb(51, 51, 51) },
                 { "TSBT_LabelColor2", Color.FromArgb(100, 100, 100) },
-                { "TSBT_CloseBG", Color.FromArgb(25, 255, 255, 255) },
-                { "TSBT_CloseBGHover", Color.FromArgb(50, 255, 255, 255) },
-                // HEADER MENU COLOR MODE
-                { "HeaderBGColor", Color.White },
-                { "HeaderFEColor", Color.FromArgb(51, 51, 51) },
-                { "HeaderFEColor2", Color.FromArgb(51, 51, 51) },
-                { "HeaderBGColor2", Color.FromArgb(236, 242, 248) },
-                // UI COLOR
-                //
-                { "SelectBoxBGColor", Color.White },
-                { "SelectBoxBGColor2", Color.FromArgb(236, 242, 248) },
-                { "SelectBoxFEColor", Color.FromArgb(51, 51, 51) },
+                { "DataGridHeaderFEColor", Color.WhiteSmoke },
+                { "DynamicThemeActiveBtnBGColor", Color.WhiteSmoke },
+                // BORDERS & GRIDS
                 { "SelectBoxBorderColor", Color.FromArgb(223, 233, 243) },
+                { "DataGridGridColor", Color.FromArgb(226, 226, 226) },
                 { "CheckBoxUnCheckBorderColor", Color.FromArgb(98, 98, 98) },
                 { "TrackColor", Color.FromArgb(208, 214, 219) },
-                //
-                { "PageContainerBGColor", Color.FromArgb(236, 242, 248) },
-                { "PageContainerUIBGColor", Color.White },
-                { "ContentLabelLeftColor", Color.FromArgb(51, 51, 51) },
-                { "AccentColor", Color.FromArgb(28, 122, 25) },
-                { "AccentColorHover", Color.FromArgb(33, 136, 29) },
-                { "TextboxBGColor", Color.White },
-                { "TextboxFEColor", Color.FromArgb(51, 51, 51) },
-                { "DataGridBGColor", Color.White },
-                { "DataGridFEColor", Color.FromArgb(51, 51, 51) },
-                { "DataGridGridColor", Color.FromArgb(226, 226, 226) },
-                { "DataGridAlternatingColor", Color.FromArgb(236, 242, 248) },
-                { "DataGridHeaderBGColor", Color.FromArgb(28, 122, 25) },
-                { "DataGridHeaderFEColor", Color.WhiteSmoke },
-                { "DynamicThemeActiveBtnBGColor", Color.WhiteSmoke }
+                // TRANSPARENCIES / ALPHAS
+                { "TSBT_CloseBG", Color.FromArgb(25, 255, 255, 255) },
+                { "TSBT_CloseBGHover", Color.FromArgb(50, 255, 255, 255) }
             };
             // DARK THEME COLORS
             // ====================================
             public static readonly Dictionary<string, Color> DarkTheme = new Dictionary<string, Color>{
-                // TS TEMPLATE
+                // BG & PANELS
                 { "TSBT_BGColor", Color.FromArgb(27, 30, 34) },
                 { "TSBT_BGColor2", Color.FromArgb(34, 38, 44) },
+                // ACCENT COLORS
                 { "TSBT_AccentColor", Color.FromArgb(38, 187, 33) },
+                { "AccentColorHover", Color.FromArgb(43, 206, 38) },
+                // FOREGROUND / TEXT
                 { "TSBT_LabelColor1", Color.WhiteSmoke },
                 { "TSBT_LabelColor2", Color.FromArgb(176, 184, 196) },
-                { "TSBT_CloseBG", Color.FromArgb(75, 34, 38, 44) },
-                { "TSBT_CloseBGHover", Color.FromArgb(75, 27,30, 34) },
-                // HEADER MENU COLOR MODE
-                { "HeaderBGColor", Color.FromArgb(34, 38, 44) },
-                { "HeaderFEColor", Color.WhiteSmoke },
-                { "HeaderFEColor2", Color.WhiteSmoke },
-                { "HeaderBGColor2", Color.FromArgb(27, 30, 34) },
-                // UI COLOR
-                //
-                { "SelectBoxBGColor", Color.FromArgb(34, 38, 44) },
-                { "SelectBoxBGColor2", Color.FromArgb(27, 30, 34) },
-                { "SelectBoxFEColor", Color.WhiteSmoke },
+                { "DataGridHeaderFEColor", Color.FromArgb(27, 30, 34) },
+                { "DynamicThemeActiveBtnBGColor", Color.FromArgb(27, 30, 34) },
+                // BORDERS & GRIDS
                 { "SelectBoxBorderColor", Color.FromArgb(42, 47, 53) },
+                { "DataGridGridColor", Color.FromArgb(42, 47, 53) },
                 { "CheckBoxUnCheckBorderColor", Color.FromArgb(170, 170, 170) },
                 { "TrackColor", Color.FromArgb(170, 170, 170) },
-                //
-                { "PageContainerBGColor", Color.FromArgb(27, 30, 34) },
-                { "PageContainerUIBGColor", Color.FromArgb(34, 38, 44) },
-                { "ContentLabelLeftColor", Color.WhiteSmoke },
-                { "AccentColor", Color.FromArgb(38, 187, 33) },
-                { "AccentColorHover", Color.FromArgb(43, 206, 38) },
-                { "TextboxBGColor", Color.FromArgb(34, 38, 44) },
-                { "TextboxFEColor", Color.WhiteSmoke },
-                { "DataGridBGColor", Color.FromArgb(34, 38, 44) },
-                { "DataGridFEColor", Color.WhiteSmoke },
-                { "DataGridGridColor", Color.FromArgb(42, 47, 53) },
-                { "DataGridAlternatingColor", Color.FromArgb(27, 30, 34) },
-                { "DataGridHeaderBGColor", Color.FromArgb(38, 187, 33) },
-                { "DataGridHeaderFEColor", Color.FromArgb(27, 30, 34) },
-                { "DynamicThemeActiveBtnBGColor", Color.FromArgb(27, 30, 34) }
+                // TRANSPARENCIES / ALPHAS
+                { "TSBT_CloseBG", Color.FromArgb(75, 34, 38, 44) },
+                { "TSBT_CloseBGHover", Color.FromArgb(75, 27, 30, 34) }
             };
             // THEME SWITCHER
             // ====================================

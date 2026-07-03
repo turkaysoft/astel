@@ -110,60 +110,60 @@ namespace Astel.astel_modules{
             try{
                 TSThemeModeHelper.InitializeThemeForForm(this);
                 //
-                MainToolTip.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "HeaderFEColor2");
-                MainToolTip.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "HeaderBGColor2");
+                MainToolTip.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_LabelColor1");
+                MainToolTip.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor");
                 //
-                BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "PageContainerUIBGColor");
-                Panel_BG.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "HeaderBGColor2");
+                BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
+                Panel_BG.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor");
                 //
-                SetControlColors<Label>(Panel_BG, lbl => lbl.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "ContentLabelLeftColor"));
+                SetControlColors<Label>(Panel_BG, lbl => lbl.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_LabelColor1"));
                 SetControlColors<TextBox>(Panel_BG, tb =>{
-                    tb.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TextboxBGColor");
-                    tb.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TextboxFEColor");
+                    tb.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
+                    tb.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_LabelColor1");
                 });
                 SetControlColors<Button>(Panel_BG, btn =>{
                     btn.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "DynamicThemeActiveBtnBGColor");
-                    var color = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
+                    var color = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
                     btn.BackColor = color;
                     btn.FlatAppearance.BorderColor = color;
                     btn.FlatAppearance.MouseDownBackColor = color;
                     btn.FlatAppearance.MouseOverBackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColorHover");
                 });
                 //
-                LabelHeader.BackColor = Panel_Feature.BackColor = Panel_Mode.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "PageContainerUIBGColor");
-                LabelHeader.ForeColor = LabelFeature.ForeColor = LabelMode.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "ContentLabelLeftColor");
-                LabelFeature.BackColor = LabelMode.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "HeaderBGColor2");
+                LabelHeader.BackColor = Panel_Feature.BackColor = Panel_Mode.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
+                LabelHeader.ForeColor = LabelFeature.ForeColor = LabelMode.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_LabelColor1");
+                LabelFeature.BackColor = LabelMode.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor");
                 //
-                SetControlColors<CheckBox>(Panel_Feature, cb => cb.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "ContentLabelLeftColor"));
-                SetControlColors<RadioButton>(Panel_Mode, rb => rb.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "ContentLabelLeftColor"));
+                SetControlColors<CheckBox>(Panel_Feature, cb => cb.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_LabelColor1"));
+                SetControlColors<RadioButton>(Panel_Mode, rb => rb.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_LabelColor1"));
                 //
-                CheckUppercase.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
-                CheckUppercase.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "SelectBoxBGColor");
+                CheckUppercase.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
+                CheckUppercase.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
                 CheckUppercase.UncheckedBorderColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "CheckBoxUnCheckBorderColor");
-                CheckLowercase.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
-                CheckLowercase.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "SelectBoxBGColor");
+                CheckLowercase.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
+                CheckLowercase.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
                 CheckLowercase.UncheckedBorderColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "CheckBoxUnCheckBorderColor");
-                CheckNumeric.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
-                CheckNumeric.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "SelectBoxBGColor");
+                CheckNumeric.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
+                CheckNumeric.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
                 CheckNumeric.UncheckedBorderColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "CheckBoxUnCheckBorderColor");
-                CheckSpecialChars.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
-                CheckSpecialChars.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "SelectBoxBGColor");
+                CheckSpecialChars.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
+                CheckSpecialChars.CheckMarkColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
                 CheckSpecialChars.UncheckedBorderColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "CheckBoxUnCheckBorderColor");
                 //
                 RadioRead.UnCheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "CheckBoxUnCheckBorderColor");
-                RadioRead.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
+                RadioRead.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
                 RadioWrite.UnCheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "CheckBoxUnCheckBorderColor");
-                RadioWrite.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
+                RadioWrite.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
                 RadioMixed.UnCheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "CheckBoxUnCheckBorderColor");
-                RadioMixed.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
+                RadioMixed.CheckedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
                 //
-                PassLenghtLabel.BackColor = PassGenLenght.BackColor = PassResultLabel.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "PageContainerUIBGColor");
-                PassLenghtLabel.ForeColor = PassGenLenght.ForeColor = PassResultLabel.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "ContentLabelLeftColor");
+                PassLenghtLabel.BackColor = PassGenLenght.BackColor = PassResultLabel.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_BGColor2");
+                PassLenghtLabel.ForeColor = PassGenLenght.ForeColor = PassResultLabel.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_LabelColor1");
                 PassGenLenght.TrackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TrackColor");
-                PassGenLenght.ThumbColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
+                PassGenLenght.ThumbColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
                 PassGenLenght.ThumbHoverColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColorHover");
                 PassGenLenght.ThumbPressedColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColorHover");
-                PassGenLenght.TrackFillColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "AccentColor");
+                PassGenLenght.TrackFillColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
                 //
                 TSImageRenderer(BtnGenPass, AstelMain.theme == 1 ? Properties.Resources.ct_generate_light : Properties.Resources.ct_generate_dark, 18, ContentAlignment.MiddleRight);
                 //

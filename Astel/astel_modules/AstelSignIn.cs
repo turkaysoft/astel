@@ -21,37 +21,37 @@ namespace Astel.astel_modules{
                 TSThemeModeHelper.SetThemeMode(theme_mode == 0);
                 TSThemeModeHelper.InitializeThemeForForm(this);
                 //
-                BackColor = TS_ThemeEngine.ColorMode(theme_mode, "PageContainerUIBGColor");
-                Panel_BG.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "HeaderBGColor2");
+                BackColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_BGColor2");
+                Panel_BG.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_BGColor");
                 //
                 foreach (Control control in Panel_BG.Controls){
                     if (control is Label label){
-                        label.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "ContentLabelLeftColor");
+                        label.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_LabelColor1");
                     }
                 }
                 foreach (Control control in Panel_BG.Controls){
                     if (control is TextBox textbox){
-                        textbox.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "TextboxBGColor");
-                        textbox.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "TextboxFEColor");
+                        textbox.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_BGColor2");
+                        textbox.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_LabelColor1");
                     }
                 }
                 foreach (Control control in Panel_BG.Controls){
                     if (control is Button button){
                         button.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "DynamicThemeActiveBtnBGColor");
-                        button.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "AccentColor");
-                        button.FlatAppearance.BorderColor = TS_ThemeEngine.ColorMode(theme_mode, "AccentColor");
-                        button.FlatAppearance.MouseDownBackColor = TS_ThemeEngine.ColorMode(theme_mode, "AccentColor");
+                        button.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_AccentColor");
+                        button.FlatAppearance.BorderColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_AccentColor");
+                        button.FlatAppearance.MouseDownBackColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_AccentColor");
                         button.FlatAppearance.MouseOverBackColor = TS_ThemeEngine.ColorMode(theme_mode, "AccentColorHover");
                     }
                 }
                 //
                 TSImageRenderer(BtnSignIn, theme_mode == 1 ? Properties.Resources.ct_confirm_light : Properties.Resources.ct_confirm_dark, 18, ContentAlignment.MiddleRight);
                 //
-                LabelHeader.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "PageContainerUIBGColor");
-                LabelHeader.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "ContentLabelLeftColor");
-                CheckPassword.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "ContentLabelLeftColor");
-                CheckPassword.CheckedColor = TS_ThemeEngine.ColorMode(theme_mode, "AccentColor");
-                CheckPassword.CheckMarkColor = TS_ThemeEngine.ColorMode(theme_mode, "SelectBoxBGColor");
+                LabelHeader.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_BGColor2");
+                LabelHeader.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_LabelColor1");
+                CheckPassword.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_LabelColor1");
+                CheckPassword.CheckedColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_AccentColor");
+                CheckPassword.CheckMarkColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_BGColor2");
                 CheckPassword.UncheckedBorderColor = TS_ThemeEngine.ColorMode(theme_mode, "CheckBoxUnCheckBorderColor");
                 // ======================================================================================================
                 string lang_code = software_read_settings.TSReadSettings(ts_settings_container, "LanguageStatus");
