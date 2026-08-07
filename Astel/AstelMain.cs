@@ -185,7 +185,7 @@ namespace Astel{
             // DOUBLE BUFFER TABLE
             typeof(DataGridView).InvokeMember("DoubleBuffered", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty, null, DataMainTable, new object[] { true });
             // TEMPORARY COLUMN
-            DataMainTable.RowTemplate.Height = (int)(26 * this.DeviceDpi / 96f);
+            DataMainTable.RowTemplate.Height = (int)(32 * this.DeviceDpi / 96f);
             for (int i = 1; i <= 7; i++){ DataMainTable.Columns.Add("x" + i, "x" + i); }
             //
             foreach (DataGridViewColumn DataTable in DataMainTable.Columns){
@@ -257,7 +257,7 @@ namespace Astel{
         // LOAD
         // ======================================================================================================
         private async void Astel_Load(object sender, EventArgs e){
-            // PREFETCH
+            // PREFETCH LOAD
             ServiceListAdd();
             RunSoftwareEngine();
             //
@@ -275,16 +275,17 @@ namespace Astel{
             //
             Text = TS_VersionEngine.TS_SoftwareVersion(0);
             //
-            DataMainTable.Columns[0].Width = (int)(50 * this.DeviceDpi / 96f);
-            DataMainTable.Columns[1].Width = (int)(100 * this.DeviceDpi / 96f);
-            DataMainTable.Columns[2].Width = (int)(140 * this.DeviceDpi / 96f);
-            DataMainTable.Columns[3].Width = (int)(140 * this.DeviceDpi / 96f);
-            DataMainTable.Columns[4].Width = (int)(140 * this.DeviceDpi / 96f);
-            DataMainTable.Columns[5].Width = (int)(140 * this.DeviceDpi / 96f);
-            DataMainTable.Columns[6].Width = (int)(160 * this.DeviceDpi / 96f);
-            foreach (DataGridViewColumn columnPadding in DataMainTable.Columns){
-                int scaledPadding = (int)(3 * this.DeviceDpi / 96f);
-                columnPadding.DefaultCellStyle.Padding = new Padding(scaledPadding, 0, 0, 0);
+            float dpi = this.DeviceDpi / 96f;
+            DataMainTable.Columns[0].Width = (int)(40 * dpi);
+            DataMainTable.Columns[1].Width = (int)(110 * dpi);
+            DataMainTable.Columns[2].Width = (int)(160 * dpi);
+            DataMainTable.Columns[3].Width = (int)(140 * dpi);
+            DataMainTable.Columns[4].Width = (int)(150 * dpi);
+            DataMainTable.Columns[5].Width = (int)(130 * dpi);
+            DataMainTable.Columns[6].Width = (int)(130 * dpi);
+            foreach (DataGridViewColumn col in DataMainTable.Columns){
+                int pad = (int)(3 * dpi);
+                col.DefaultCellStyle.Padding = new Padding(pad, 0, 0, 0);
             }
             // EVENT: KEY NAVIGATION FOR TABLE
             DataMainTable.KeyDown += DataMainTable_KeyDown;
@@ -304,20 +305,19 @@ namespace Astel{
             string[] globalServices = new string[]{
                 "-",
                 // Social / Communication
-                "Facebook", "Instagram", "X (Twitter)", "LinkedIn", "TikTok", "Snapchat",
-                "Pinterest", "Reddit", "WhatsApp", "Telegram", "Signal", "Discord", "Slack",
+                "Facebook", "Instagram", "X (Twitter)", "LinkedIn", "TikTok",
+                "Snapchat", "Reddit", "Discord", "Telegram", "WhatsApp", "Signal", "Threads",
                 // Entertainment / Media
-                "Netflix", "Spotify", "Disney+", "Prime Video", "HBO Max", "Twitch", "Kick", "Crunchyroll",
-                // Game
-                "Steam", "Epic Games", "PlayStation Network", "Battle.net", "Roblox", "Riot Games", "Ubisoft Connect",
+                "Netflix", "Spotify", "Disney+", "Max", "Apple TV+",
+                // Gaming
+                "Steam", "Epic Games", "PlayStation Network", "Xbox", "Roblox", "Riot Games",
                 // Shopping / Finance
                 "Amazon", "eBay", "Shopify", "AliExpress", "Temu",
                 "PayPal", "Wise", "Revolut", "Binance", "Coinbase",
-                // Artificial Intelligence (AI) / Data
-                "OpenAI (ChatGPT)", "Anthropic (Claude)", "Midjourney", "Hugging Face", "Perplexity", "ElevenLabs", "DeepSeek", "DeepL",
-                // Productivity / Cloud / Main Accounts
-                "Google", "Apple", "Microsoft", "Yahoo",
-                "Dropbox", "Notion", "Canva",
+                // AI / Productivity
+                "ChatGPT", "Claude", "DeepSeek", "DeepL",
+                "Google", "Microsoft", "Apple",
+                "Notion", "Canva",
                 // Developer
                 "GitHub", "GitLab", "Stack Overflow", "Docker",
                 // Travel
@@ -325,18 +325,18 @@ namespace Astel{
             };
             string[] turkeyServices = new string[]{
                 // Turkey - E-Commerce / Delivery
-                "Trendyol", "Hepsiburada", "n11", "Pazarama", "Sahibinden", "Dolap", "Gardrops",
-                "Yemeksepeti", "Getir", "Migros",
+                "Trendyol", "Hepsiburada", "Sahibinden",
+                "Yemeksepeti", "Getir",
                 // Turkey - Transportation / Travel
-                "Obilet", "TCDD", "THY", "Pegasus", "AJet", "Enuygun",
+                "Obilet", "THY", "Pegasus", "Enuygun",
                 // Turkey - Finance / Banks
                 "Ziraat Bankası", "İş Bankası", "Garanti BBVA", "Yapı Kredi",
-                "Akbank", "QNB", "DenizBank", "Halkbank", "VakıfBank",
+                "Akbank", "DenizBank", "Halkbank", "VakıfBank",
                 "Papara", "Enpara", "Midas",
                 // Turkey - Government / Education
-                "E-Devlet", "E-Nabız", "MHRS", "ÖSYM", "MEB (E-Okul)",
+                "E-Devlet", "E-Nabız", "MHRS", "ÖSYM",
                 // Turkey - Operators / Local
-                "Turkcell", "Vodafone", "Türk Telekom", "Türknet", "İstanbulkart", "Exxen"
+                "Turkcell", "Vodafone", "Türk Telekom", "Türknet"
             };
             var services_main = new List<string>(globalServices);
             var get_region = new RegionInfo(CultureInfo.CurrentCulture.LCID);
@@ -373,10 +373,7 @@ namespace Astel{
                         salt = Convert.FromBase64String(saltBase64);
                         keyMaterial = Convert.FromBase64String(keyMaterialBase64);
                     }
-                    byte[] aesKey;
-                    using (var kdf = new Rfc2898DeriveBytes(keyMaterial, salt, 210_000, HashAlgorithmName.SHA512)){
-                        aesKey = kdf.GetBytes(32);
-                    }
+                    byte[] aesKey = TS_AES_Encryption.DeriveKeyFromMaterial(keyMaterial, salt);
                     TS_AES_Encryption.SetKey(aesKey);
                     return ts_xDoc;
                 }
@@ -398,9 +395,10 @@ namespace Astel{
             var root = ts_xDoc.Element("Datas");
             root.SetAttributeValue("SV", TS_VersionEngine.TS_SoftwareVersion(1));
             string saved_crossLinker64 = software_read_settings.TSReadSettings(ts_session_container, "CrossLinker").Trim();
-            string crossLinker64 = root.Attribute("CL")?.Value.Trim();
-            if (!string.IsNullOrEmpty(crossLinker64)){
-                if (crossLinker64 != saved_crossLinker64){
+            string saved_crossLinker = string.IsNullOrEmpty(saved_crossLinker64) ? "" : TS_SessionProtection.UnprotectSessionData(saved_crossLinker64);
+            string saved_cl = root.Attribute("CL")?.Value.Trim() ?? "";
+            if (!string.IsNullOrEmpty(saved_cl)){
+                if (saved_cl != saved_crossLinker){
                     File.Delete(ts_data_xml_path);
                     if (Directory.Exists(ts_data_backup_folder)){
                         Directory.Delete(ts_data_backup_folder, true);
@@ -411,7 +409,7 @@ namespace Astel{
                     return;
                 }
             }else{
-                root.SetAttributeValue("CL", saved_crossLinker64);
+                root.SetAttributeValue("CL", saved_crossLinker);
                 ts_xDoc.Save(ts_data_xml_path);
             }
         }
@@ -450,15 +448,21 @@ namespace Astel{
             ts_dataTable.Columns.Add("PassChangeDate", typeof(string));
             if (ts_xDoc_root != null){
                 foreach (var ts_xml_mode in ts_xDoc_root.Elements("Data")){
-                    DataRow ts_xml_row = ts_dataTable.NewRow();
-                    ts_xml_row["ID"] = int.Parse(ts_xml_mode.Element("ID")?.Value ?? "0");
-                    ts_xml_row["Service"] = ts_xml_mode.Element("Service") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Service").Value) : string.Empty;
-                    ts_xml_row["Email"] = ts_xml_mode.Element("Email") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Email").Value) : string.Empty;
-                    ts_xml_row["Password"] = ts_xml_mode.Element("Password") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Password").Value) : string.Empty;
-                    ts_xml_row["Url"] = ts_xml_mode.Element("Url") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Url").Value) : string.Empty;
-                    ts_xml_row["Note"] = ts_xml_mode.Element("Note") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Note").Value) : string.Empty;
-                    ts_xml_row["PassChangeDate"] = ts_xml_mode.Element("PassChangeDate") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("PassChangeDate").Value) : string.Empty;
-                    ts_dataTable.Rows.Add(ts_xml_row);
+                    try
+                    {
+                        DataRow ts_xml_row = ts_dataTable.NewRow();
+                        ts_xml_row["ID"] = int.Parse(ts_xml_mode.Element("ID")?.Value ?? "0");
+                        ts_xml_row["Service"] = ts_xml_mode.Element("Service") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Service").Value) : string.Empty;
+                        ts_xml_row["Email"] = ts_xml_mode.Element("Email") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Email").Value) : string.Empty;
+                        ts_xml_row["Password"] = ts_xml_mode.Element("Password") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Password").Value) : string.Empty;
+                        ts_xml_row["Url"] = ts_xml_mode.Element("Url") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Url").Value) : string.Empty;
+                        ts_xml_row["Note"] = ts_xml_mode.Element("Note") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("Note").Value) : string.Empty;
+                        ts_xml_row["PassChangeDate"] = ts_xml_mode.Element("PassChangeDate") != null ? TS_AES_Encryption.TS_AES_Decrypt(ts_xml_mode.Element("PassChangeDate").Value) : string.Empty;
+                        ts_dataTable.Rows.Add(ts_xml_row);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
             ts_dataSet.Tables.Add(ts_dataTable);
@@ -1163,15 +1167,15 @@ namespace Astel{
                 CmbService.SelectedForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
                 // DATA TABLE
                 DataMainTable.BackgroundColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
-                DataMainTable.GridColor = TS_ThemeEngine.ColorMode(theme, "DataGridGridColor");
+                DataMainTable.GridColor = TS_ThemeEngine.ColorMode(theme, "SelectBoxBorderColor");
                 DataMainTable.DefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor2");
                 DataMainTable.DefaultCellStyle.ForeColor = TS_ThemeEngine.ColorMode(theme, "TSBT_LabelColor1");
                 DataMainTable.AlternatingRowsDefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_BGColor");
                 DataMainTable.ColumnHeadersDefaultCellStyle.BackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
                 DataMainTable.ColumnHeadersDefaultCellStyle.SelectionBackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
-                DataMainTable.ColumnHeadersDefaultCellStyle.ForeColor = TS_ThemeEngine.ColorMode(theme, "DataGridHeaderFEColor");
+                DataMainTable.ColumnHeadersDefaultCellStyle.ForeColor = TS_ThemeEngine.ColorMode(theme, "DynamicThemeActiveBtnBGColor");
                 DataMainTable.DefaultCellStyle.SelectionBackColor = TS_ThemeEngine.ColorMode(theme, "TSBT_AccentColor");
-                DataMainTable.DefaultCellStyle.SelectionForeColor = TS_ThemeEngine.ColorMode(theme, "DataGridHeaderFEColor");
+                DataMainTable.DefaultCellStyle.SelectionForeColor = TS_ThemeEngine.ColorMode(theme, "DynamicThemeActiveBtnBGColor");
                 //
                 Software_other_page_preloader();
             }catch (Exception){ }
@@ -1204,15 +1208,16 @@ namespace Astel{
         }
         // LANGUAGES SETTINGS
         // ======================================================================================================
+        private ToolStripMenuItem selected_lang = null;
         private void Select_lang_active(object target_lang){
-            ToolStripMenuItem selected_lang = null;
+            if (target_lang == null)
+                return;
+            ToolStripMenuItem clicked_lang = (ToolStripMenuItem)target_lang;
+            if (selected_lang == clicked_lang)
+                return;
             Select_lang_deactive();
-            if (target_lang != null){
-                if (selected_lang != (ToolStripMenuItem)target_lang){
-                    selected_lang = (ToolStripMenuItem)target_lang;
-                    selected_lang.Checked = true;
-                }
-            }
+            selected_lang = clicked_lang;
+            selected_lang.Checked = true;
         }
         private void Select_lang_deactive(){
             foreach (ToolStripMenuItem disabled_lang in languageToolStripMenuItem.DropDownItems){
@@ -1409,15 +1414,16 @@ namespace Astel{
         }
         // STARTUP SETINGS
         // ======================================================================================================
+        private ToolStripMenuItem selected_startup_mode = null;
         private void Select_startup_mode_active(object target_startup_mode){
-            ToolStripMenuItem selected_startup_mode = null;
+            if (target_startup_mode == null)
+                return;
+            ToolStripMenuItem clicked_startup_mode = (ToolStripMenuItem)target_startup_mode;
+            if (selected_startup_mode == clicked_startup_mode)
+                return;
             Select_startup_mode_deactive();
-            if (target_startup_mode != null){
-                if (selected_startup_mode != (ToolStripMenuItem)target_startup_mode){
-                    selected_startup_mode = (ToolStripMenuItem)target_startup_mode;
-                    selected_startup_mode.Checked = true;
-                }
-            }
+            selected_startup_mode = clicked_startup_mode;
+            selected_startup_mode.Checked = true;
         }
         private void Select_startup_mode_deactive(){
             foreach (ToolStripMenuItem disabled_startup in startupToolStripMenuItem.DropDownItems){
@@ -1438,15 +1444,16 @@ namespace Astel{
         }
         // SAFETY WARNINGS SETINGS
         // ======================================================================================================
+        private ToolStripMenuItem selected_safety_mode = null;
         private void Safety_warnings_mode_active(object target_safety_mode){
-            ToolStripMenuItem selected_safety_mode = null;
+            if (target_safety_mode == null)
+                return;
+            ToolStripMenuItem clicked_safety_mode = (ToolStripMenuItem)target_safety_mode;
+            if (selected_safety_mode == clicked_safety_mode)
+                return;
             Safety_warnings_mode_deactive();
-            if (target_safety_mode != null){
-                if (selected_safety_mode != (ToolStripMenuItem)target_safety_mode){
-                    selected_safety_mode = (ToolStripMenuItem)target_safety_mode;
-                    selected_safety_mode.Checked = true;
-                }
-            }
+            selected_safety_mode = clicked_safety_mode;
+            selected_safety_mode.Checked = true;
         }
         private void Safety_warnings_mode_deactive(){
             foreach (ToolStripMenuItem disabled_safety in safetyWarningsToolStripMenuItem.DropDownItems){
@@ -1467,15 +1474,16 @@ namespace Astel{
         }
         // PASSWORD MASK SETTINGS
         // ======================================================================================================
+        private ToolStripMenuItem selected_mask_mode = null;
         private void Password_mask_mode_active(object target_mask_mode){
-            ToolStripMenuItem selected_safety_mode = null;
+            if (target_mask_mode == null)
+                return;
+            ToolStripMenuItem clicked_mask_mode = (ToolStripMenuItem)target_mask_mode;
+            if (selected_mask_mode == clicked_mask_mode)
+                return;
             Password_mask_mode_deactive();
-            if (target_mask_mode != null){
-                if (selected_safety_mode != (ToolStripMenuItem)target_mask_mode){
-                    selected_safety_mode = (ToolStripMenuItem)target_mask_mode;
-                    selected_safety_mode.Checked = true;
-                }
-            }
+            selected_mask_mode = clicked_mask_mode;
+            selected_mask_mode.Checked = true;
         }
         private void Password_mask_mode_deactive(){
             foreach (ToolStripMenuItem disabled_mask in PassMaskStatusToolStripMenuItem.DropDownItems){
@@ -1496,15 +1504,16 @@ namespace Astel{
         }
         // AUTO BACKUP SETTINGS
         // ======================================================================================================
+        private ToolStripMenuItem selected_abackup_mode = null;
         private void Select_abackup_mode_active(object target_abackup_mode){
-            ToolStripMenuItem selected_abackup_mode = null;
+            if (target_abackup_mode == null)
+                return;
+            ToolStripMenuItem clicked_abackup_mode = (ToolStripMenuItem)target_abackup_mode;
+            if (selected_abackup_mode == clicked_abackup_mode)
+                return;
             Select_abackup_mode_deactive();
-            if (target_abackup_mode != null){
-                if (selected_abackup_mode != (ToolStripMenuItem)target_abackup_mode){
-                    selected_abackup_mode = (ToolStripMenuItem)target_abackup_mode;
-                    selected_abackup_mode.Checked = true;
-                }
-            }
+            selected_abackup_mode = clicked_abackup_mode;
+            selected_abackup_mode.Checked = true;
         }
         private void Select_abackup_mode_deactive(){
             foreach (ToolStripMenuItem disabled_abackup in autoDataBackupToolStripMenuItem.DropDownItems){
@@ -1795,7 +1804,28 @@ namespace Astel{
                 Text = TS_VersionEngine.TS_SoftwareVersion(0) + " - " + software_lang.TSReadLangs("AstelHome", "ah_load");
                 string target_data = Path.Combine(ts_session_root_path, ts_data_file_name);
                 if (!mergeData){
-                    // Overwrite Mode
+                    // Overwrite Mode - Validate compatibility before overwriting
+                    var validateDoc = XDocument.Load(filePath);
+                    var validateRoot = validateDoc.Element("Datas");
+                    var firstElement = validateRoot?.Elements("Data").FirstOrDefault();
+                    if (firstElement != null){
+                        byte[] testKey = TS_AES_Encryption.ExtractKeyFromAstelFile(filePath);
+                        if (testKey == null){
+                            TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_key_extract_failed"), "\n\n"));
+                            return;
+                        }
+                        try{
+                            TS_AES_Encryption.WithTempKey(testKey, () => {
+                                TS_AES_Encryption.TS_AES_Decrypt(firstElement.Element("Service")?.Value ?? "");
+                                return 0;
+                            });
+                        }catch{
+                            Array.Clear(testKey, 0, testKey.Length);
+                            TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("DataTransfer", "hdt_import_key_mismatch"), "\n\n", 0, "\n\n", 0, "\n", 0));
+                            return;
+                        }
+                        Array.Clear(testKey, 0, testKey.Length);
+                    }
                     File.Copy(filePath, target_data, true);
                     var importDoc = XDocument.Load(filePath);
                     var importRoot = importDoc.Element("Datas");
@@ -1885,7 +1915,8 @@ namespace Astel{
                 var ts_xDoc = XDocument.Load(ts_data_xml_path);
                 var root = ts_xDoc.Element("Datas");
                 string saved_crossLinker64 = software_read_settings.TSReadSettings(ts_session_container, "CrossLinker");
-                root.SetAttributeValue("CL", saved_crossLinker64);
+                string saved_crossLinker = string.IsNullOrEmpty(saved_crossLinker64) ? "" : TS_SessionProtection.UnprotectSessionData(saved_crossLinker64);
+                root.SetAttributeValue("CL", saved_crossLinker);
                 ts_xDoc.Save(ts_data_xml_path);
                 //
                 await InitializeLoaderSecurityAsync();

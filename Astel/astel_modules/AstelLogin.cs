@@ -110,7 +110,7 @@ namespace Astel.astel_modules{
                     try{
                         string saved_salt = TS_SessionProtection.UnprotectSessionData(protected_salt);
                         string saved_password = TS_SessionProtection.UnprotectSessionData(protected_password);
-                        string hashed_input = TSHashPassword(get_password, saved_salt, 210000);
+                        string hashed_input = TSHashPassword(get_password, saved_salt, TSSecureModule.PasswordHashIterations);
                         return FixedTimeStringEquals(hashed_input, saved_password);
                     }catch(Exception){
                         return false;

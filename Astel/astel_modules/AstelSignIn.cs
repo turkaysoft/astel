@@ -66,7 +66,14 @@ namespace Astel.astel_modules{
                 LabelPasswordRepeat.Text = software_lang.TSReadLangs("AstelSignIn", "as_label_password_repeat");
                 CheckPassword.Text = software_lang.TSReadLangs("AstelSignIn", "as_visible");
                 BtnSignIn.Text = " " + software_lang.TSReadLangs("AstelSignIn", "as_btn");
-            }catch (Exception){ }
+                // PASS VISIBLE MODE
+                string pass_vis_mode = software_read_settings.TSReadSettings(ts_settings_container, "LoginPassVisible");
+                if (string.IsNullOrEmpty(pass_vis_mode)) { pass_vis_mode = "0"; }
+                bool pass_vis_mode_bool = pass_vis_mode == "1";
+                TxtPassword.UseSystemPasswordChar = !pass_vis_mode_bool;
+                CheckPassword.Checked = pass_vis_mode_bool;
+            }
+            catch (Exception){ }
         }
         // SIGN IN LOAD
         // ======================================================================================================
@@ -103,7 +110,7 @@ namespace Astel.astel_modules{
                 }));
                 return;
             }
-            if (password_1.Length < 6 || password_1.Length > 32){
+            if (password_1.Length < 12 || password_1.Length > 32){
                 TS_MessageBoxEngine.TS_MessageBox(this, 2, software_lang.TSReadLangs("AstelSignIn", "as_password_req_info"));
                 BeginInvoke(new Action(() => {
                     TxtPassword.Focus();
@@ -123,7 +130,7 @@ namespace Astel.astel_modules{
             bool set_password_status = await Task.Run(() =>{
                 try{
                     string salt = GenerateSalt(32);
-                    string hashed_password = TSHashPassword(password_1, salt, 210000);
+                    string hashed_password = TSHashPassword(password_1, salt, TSSecureModule.PasswordHashIterations);
                     string crossLinker = GenerateSecureRandomString(32);
                     TSSettingsModule software_setting_save = new TSSettingsModule(ts_session_file);
                     software_setting_save.TSWriteSettings(ts_session_container, "SessionMode", "1");

@@ -23,6 +23,12 @@ namespace Astel
         public static string ts_data_backup_extension_csv_name = "CSV";
         public static string ts_data_backup_extension_csv = ".csv";
 
+        // ============================================================
+        // ITERATION COUNTS
+        // ============================================================
+
+        public const int PasswordHashIterations = 100_000;
+
         // ======================================================================================================
         // MODULE USER FRIENDLY MESSAGE SEND
         // ======================================================================================================
@@ -422,6 +428,29 @@ namespace Astel
             }
 
             // --------------------------------------------------------
+            // DERIVE AES KEY FROM ASTEL DATA FILE MATERIAL
+            // --------------------------------------------------------
+
+            public static byte[] DeriveKeyFromMaterial(byte[] keyMaterial, byte[] salt)
+            {
+                if (keyMaterial == null)
+                    throw new ArgumentNullException(nameof(keyMaterial), GetErrorMessage("DeriveSubKey_MasterKeyNull"));
+                if (salt == null)
+                    throw new ArgumentNullException(nameof(salt), GetErrorMessage("DeriveSubKey_SaltNull"));
+                byte[] infoBytes = null;
+                try
+                {
+                    infoBytes = Encoding.UTF8.GetBytes("AstelDataKey");
+                    return HKDF_SHA512(keyMaterial, salt, infoBytes, 32);
+                }
+                finally
+                {
+                    if (infoBytes != null)
+                        Array.Clear(infoBytes, 0, infoBytes.Length);
+                }
+            }
+
+            // --------------------------------------------------------
             // EXTRACT KEY FROM ASTEL FILE
             // --------------------------------------------------------
 
@@ -441,10 +470,7 @@ namespace Astel
                     byte[] keyMaterial = Convert.FromBase64String(keyMaterialBase64);
                     try
                     {
-                        using (var kdf = new Rfc2898DeriveBytes(keyMaterial, salt, 210_000, HashAlgorithmName.SHA512))
-                        {
-                            return kdf.GetBytes(32);
-                        }
+                        return DeriveKeyFromMaterial(keyMaterial, salt);
                     }
                     finally
                     {
@@ -517,10 +543,10 @@ namespace Astel
         }
 
         // ============================================================
-        // PBKDF2-HMAC-SHA512
+        // PBKDF2-HMAC-SHA256
         // ============================================================
 
-        public static byte[] PBKDF2_HMAC_SHA512(string password, byte[] salt, int iterations, int outputBytes)
+        public static byte[] PBKDF2_HMAC_SHA256(string password, byte[] salt, int iterations, int outputBytes)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password), GetErrorMessage("PBKDF2_PasswordNull"));
@@ -530,7 +556,7 @@ namespace Astel
                 throw new ArgumentOutOfRangeException(nameof(iterations), GetErrorMessage("PBKDF2_IterationsInvalid"));
             if (outputBytes <= 0)
                 throw new ArgumentOutOfRangeException(nameof(outputBytes), GetErrorMessage("PBKDF2_OutputBytesInvalid"));
-            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA512))
+            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256))
             {
                 return pbkdf2.GetBytes(outputBytes);
             }
@@ -542,7 +568,7 @@ namespace Astel
 
         public class TS_SessionProtection
         {
-            private static readonly byte[] s_additionalEntropy = Encoding.UTF8.GetBytes($"{Application.ProductName}_Session_Protection_v1");
+            private static readonly byte[] s_additionalEntropy = Encoding.UTF8.GetBytes($"{Application.ProductName}_Session_Protection_v2");
             public static string ProtectSessionData(string plainData)
             {
                 if (string.IsNullOrEmpty(plainData))
@@ -586,7 +612,7 @@ namespace Astel
         // PASSWORD HASH
         // ============================================================
 
-        public static string TSHashPassword(string password, string saltBase64, int iterations = 210000)
+        public static string TSHashPassword(string password, string saltBase64, int iterations = PasswordHashIterations)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password), GetErrorMessage("Hash_PasswordNull"));
@@ -604,7 +630,7 @@ namespace Astel
             byte[] hash = null;
             try
             {
-                hash = PBKDF2_HMAC_SHA512(password, salt, iterations, 64);
+                hash = PBKDF2_HMAC_SHA256(password, salt, iterations, 32);
                 return Convert.ToBase64String(hash);
             }
             finally

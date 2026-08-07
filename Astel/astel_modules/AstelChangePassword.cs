@@ -104,7 +104,7 @@ namespace Astel.astel_modules{
                 }));
                 return;
             }
-            if (password_new.Length < 6 || password_new.Length > 32){
+            if (password_new.Length < 12 || password_new.Length > 32){
                 TS_MessageBoxEngine.TS_MessageBox(this, 2, software_lang.TSReadLangs("AstelChangePassword", "asp_pass_req_info"));
                 BeginInvoke(new Action(() => {
                     TxtNewPassword.Focus();
@@ -122,7 +122,7 @@ namespace Astel.astel_modules{
             TxtNewPasswordRepeat.Enabled = false;
             BtnChangePassword.Enabled = false;
             //
-            bool change_password_status = await Task.Run(() =>{
+            bool change_password_status = await Task.Run(async () =>{
                 try{
                     TSSettingsModule read = new TSSettingsModule(ts_session_file);
                     string protected_salt = read.TSReadSettings(ts_session_container, "PasswordSalt");
@@ -133,12 +133,15 @@ namespace Astel.astel_modules{
                     try{
                         string saved_salt = TS_SessionProtection.UnprotectSessionData(protected_salt);
                         string saved_password = TS_SessionProtection.UnprotectSessionData(protected_password);
-                        string hashed_current = TSHashPassword(password_current, saved_salt, 210000);
+                        var verifyTask = Task.Run(() => TSHashPassword(password_current, saved_salt, TSSecureModule.PasswordHashIterations));
+                        string new_salt = GenerateSalt(32);
+                        var hashNewTask = Task.Run(() => TSHashPassword(password_new, new_salt, TSSecureModule.PasswordHashIterations));
+                        await Task.WhenAll(verifyTask, hashNewTask);
+                        string hashed_current = verifyTask.Result;
                         if (!FixedTimeStringEquals(hashed_current, saved_password)){
                             return false;
                         }
-                        string new_salt = GenerateSalt(32);
-                        string new_hashed = TSHashPassword(password_new, new_salt, 210000);
+                        string new_hashed = hashNewTask.Result;
                         string protected_new_salt = TS_SessionProtection.ProtectSessionData(new_salt);
                         string protected_new_hash = TS_SessionProtection.ProtectSessionData(new_hashed);
                         TSSettingsModule write = new TSSettingsModule(ts_session_file);
