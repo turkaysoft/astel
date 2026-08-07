@@ -1,4 +1,4 @@
-# Astel - Advanced Password Management Software
+# Astel - Password Management Software
 
 [![GitHub downloads](https://img.shields.io/github/downloads/turkaysoft/astel/total?style=flat&color=1a893c&label=Downloads)](https://github.com/turkaysoft/astel/releases)
 [![GitHub stars](https://img.shields.io/github/stars/turkaysoft/astel?style=flat&color=0062cc&label=Stars)](https://github.com/turkaysoft/astel/stargazers)
