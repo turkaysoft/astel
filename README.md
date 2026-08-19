@@ -5,7 +5,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/turkaysoft/astel?style=flat&color=5a32a3&label=Latest%20Release)](https://github.com/turkaysoft/astel/releases/latest)
 [![Platform](https://img.shields.io/badge/platform-Windows-b31d28?style=flat&label=Platform)](https://github.com/turkaysoft/astel)
 
-**Astel** is a secure and powerful **password management software** developed by **Eray Türkay**. Built with a focus on maximum security, it ensures that none of your personal information ever leaves your computer. Every piece of data is stored locally and encrypted, providing a private vault for your digital life.
+**Astel** is a secure and modern **password management software** developed by **Eray Türkay**. Designed with a strong focus on privacy and security, Astel keeps your data entirely on your computer and protects it with a secure, encrypted vault. With modern password protection, automatic locking, secure backups, and flexible data management, Astel provides a private and reliable way to manage your digital credentials.
 
 ---
 
@@ -21,17 +21,14 @@ You can support this project by making a donation to help ensure its sustainabil
 * **Privacy First:** Your data stays on your machine; no information is transferred to external servers.
 * **Pure Performance:** Developed exclusively in **C# and .NET Framework** with no external libraries or dependencies.
 * **Portable:** No installation required. Just download it, extract all files from the ZIP, select the appropriate architecture, and run it.
-* **DPAPI Session Encryption:** Session information is encrypted using Windows Data Protection API (DPAPI), ensuring data can only be decrypted on the same user account and the same machine.
-* **Strong Brute-Force Protection:** Master passwords and sensitive data are secured using PBKDF2-HMAC-SHA256 with 100,000 iterations and a unique salt, while AES key derivation is performed with HKDF, making brute-force attacks extremely difficult.
-* **Cryptographically Secure Password Generator:** Uses `RandomNumberGenerator`, implements Rejection Sampling to eliminate modulo bias, and applies Fisher-Yates Shuffle for secure character randomization. Each generated password guarantees at least one uppercase letter, one lowercase letter, one digit, and one symbol, with a random length between 12-16 characters.
-* **Auto-Clipboard Clear:** Copied passwords are automatically removed from the clipboard after 30 seconds, preventing accidental exposure through paste operations.
-* **Masked Password Display:** Password data is shown as masked characters (●) in tables, protecting against shoulder surfing and onlookers.
-* **Memory Security:** Sensitive data references are actively cleaned from memory using secure memory clearing methods, protecting against RAM analysis attacks.
-* **Advanced Password Generator:** Create complex, secure passwords tailored to your specific requirements.
-* **Flexible Data Transfer:** Easily export or import your vault data in both encrypted `*.astel` and standard `*.csv` formats.
-* **Automatic Backup:** Encrypted backups are created at specified intervals to prevent any data loss.
-* **Multilingual:** It supports 15 different languages, primarily English. You can access the supported languages here: [Supported Languages](https://github.com/turkaysoft/astel/discussions/3)
+* **Secure Vault:** Uses the new **Vault Format v2** with PBKDF2-HMAC-SHA-512 and 210,000 iterations for stronger protection against brute-force attacks.
+* **Strong Passwords:** Supports master passwords from **12 to 128 characters** and includes a modern, cryptographically secure password generator with lengths from 12 to 48 characters.
+* **Automatic Lock:** Automatically locks the vault after 5 minutes of inactivity and clears sensitive data from memory.
+* **Secure Data Management:** Provides safe vault operations, automatic backups, memory protection, and single-instance execution to help prevent data loss and conflicts.
+* **Secure Clipboard:** Sensitive data copied by the application is automatically cleared from the clipboard when the application closes.
+* **Flexible Data Transfer:** Supports encrypted `*.astel` and standard `*.csv` import and export with additional security protections.
 * **Modern UI:** Clean, intuitive interface compatible with Windows 11 design language, featuring Light, Dark, and System themes.
+* **Multilingual:** It supports 16 different languages, primarily English. You can access the supported languages here: [Supported Languages](https://github.com/turkaysoft/astel/discussions/3)
 * **Built-in Update Mechanism:** It features a built-in smart update mechanism developed specifically by **Türkaysoft**.
 
 ---
