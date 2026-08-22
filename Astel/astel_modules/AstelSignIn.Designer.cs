@@ -1,4 +1,4 @@
-ï»¿namespace Astel.astel_modules
+namespace Astel.astel_modules
 {
     partial class AstelSignIn
     {
@@ -73,7 +73,7 @@
             this.CheckPassword.Name = "CheckPassword";
             this.CheckPassword.Size = new System.Drawing.Size(114, 21);
             this.CheckPassword.TabIndex = 5;
-            this.CheckPassword.Text = "Åžifreyi GÃ¶ster";
+            this.CheckPassword.Text = "Þifreyi Göster";
             this.CheckPassword.UncheckedBackColor = System.Drawing.Color.Transparent;
             this.CheckPassword.UncheckedBorderColor = System.Drawing.Color.Gray;
             this.CheckPassword.UseVisualStyleBackColor = true;
@@ -115,7 +115,7 @@
             this.LabelPasswordRepeat.Name = "LabelPasswordRepeat";
             this.LabelPasswordRepeat.Size = new System.Drawing.Size(84, 19);
             this.LabelPasswordRepeat.TabIndex = 3;
-            this.LabelPasswordRepeat.Text = "Åžifre Tekrar:";
+            this.LabelPasswordRepeat.Text = "Þifre Tekrar:";
             // 
             // TxtPasswordRepeat
             // 
@@ -125,7 +125,7 @@
             this.TxtPasswordRepeat.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtPasswordRepeat.Location = new System.Drawing.Point(10, 156);
             this.TxtPasswordRepeat.Margin = new System.Windows.Forms.Padding(3, 3, 3, 7);
-            this.TxtPasswordRepeat.MaxLength = 32;
+            this.TxtPasswordRepeat.MaxLength = 128;
             this.TxtPasswordRepeat.Name = "TxtPasswordRepeat";
             this.TxtPasswordRepeat.Size = new System.Drawing.Size(414, 25);
             this.TxtPasswordRepeat.TabIndex = 4;
@@ -141,7 +141,7 @@
             this.LabelPassword.Name = "LabelPassword";
             this.LabelPassword.Size = new System.Drawing.Size(41, 19);
             this.LabelPassword.TabIndex = 1;
-            this.LabelPassword.Text = "Åžifre:";
+            this.LabelPassword.Text = "Þifre:";
             // 
             // TxtPassword
             // 
@@ -151,7 +151,7 @@
             this.TxtPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtPassword.Location = new System.Drawing.Point(10, 97);
             this.TxtPassword.Margin = new System.Windows.Forms.Padding(3, 3, 3, 12);
-            this.TxtPassword.MaxLength = 32;
+            this.TxtPassword.MaxLength = 128;
             this.TxtPassword.Name = "TxtPassword";
             this.TxtPassword.Size = new System.Drawing.Size(414, 25);
             this.TxtPassword.TabIndex = 2;
@@ -168,7 +168,7 @@
             this.LabelHeader.Name = "LabelHeader";
             this.LabelHeader.Size = new System.Drawing.Size(414, 35);
             this.LabelHeader.TabIndex = 0;
-            this.LabelHeader.Text = "ÅžÄ°FRE BELÄ°RLE";
+            this.LabelHeader.Text = "ÞÝFRE BELÝRLE";
             this.LabelHeader.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // AstelSignIn

@@ -553,7 +553,11 @@ namespace Astel{
                 { "TrackColor", "#D0D6DB" },
                 // TRANSPARENCIES / ALPHAS
                 { "TSBT_CloseBG", "#19FFFFFF" },
-                { "TSBT_CloseBGHover", "#32FFFFFF" }
+                { "TSBT_CloseBGHover", "#32FFFFFF" },
+                // OTHER ACCENTS
+                { "AccentAqua", "#14786D" },
+                { "AccentOrange", "#9B5500" },
+                { "AccentRed", "#CF1800" },
             };
             // DARK THEME COLORS
             // ====================================
@@ -574,7 +578,11 @@ namespace Astel{
                 { "TrackColor", "#394149" },
                 // TRANSPARENCIES / ALPHAS
                 { "TSBT_CloseBG", "#4B16191D" },
-                { "TSBT_CloseBGHover", "#4B0D0F12" }
+                { "TSBT_CloseBGHover", "#4B0D0F12" },
+                // OTHER ACCENTS
+                { "AccentAqua", "#479EA1" },
+                { "AccentOrange", "#F58806" },
+                { "AccentRed", "#FF4D4D" },
             };
             // HEX TO ARGB
             // ====================================

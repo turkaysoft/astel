@@ -1,4 +1,4 @@
-﻿namespace Astel.astel_modules
+namespace Astel.astel_modules
 {
     partial class AstelChangePassword
     {
@@ -104,7 +104,7 @@
             this.TxtNewPasswordRepeat.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtNewPasswordRepeat.Location = new System.Drawing.Point(10, 215);
             this.TxtNewPasswordRepeat.Margin = new System.Windows.Forms.Padding(3, 3, 3, 7);
-            this.TxtNewPasswordRepeat.MaxLength = 32;
+            this.TxtNewPasswordRepeat.MaxLength = 128;
             this.TxtNewPasswordRepeat.Name = "TxtNewPasswordRepeat";
             this.TxtNewPasswordRepeat.Size = new System.Drawing.Size(414, 25);
             this.TxtNewPasswordRepeat.TabIndex = 6;
@@ -130,7 +130,7 @@
             this.TxtNewPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtNewPassword.Location = new System.Drawing.Point(10, 156);
             this.TxtNewPassword.Margin = new System.Windows.Forms.Padding(3, 3, 3, 12);
-            this.TxtNewPassword.MaxLength = 32;
+            this.TxtNewPassword.MaxLength = 128;
             this.TxtNewPassword.Name = "TxtNewPassword";
             this.TxtNewPassword.Size = new System.Drawing.Size(414, 25);
             this.TxtNewPassword.TabIndex = 4;
@@ -156,7 +156,7 @@
             this.TxtCurrentPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtCurrentPassword.Location = new System.Drawing.Point(10, 97);
             this.TxtCurrentPassword.Margin = new System.Windows.Forms.Padding(3, 3, 3, 12);
-            this.TxtCurrentPassword.MaxLength = 32;
+            this.TxtCurrentPassword.MaxLength = 128;
             this.TxtCurrentPassword.Name = "TxtCurrentPassword";
             this.TxtCurrentPassword.Size = new System.Drawing.Size(414, 25);
             this.TxtCurrentPassword.TabIndex = 2;
@@ -198,7 +198,7 @@
             this.LabelHeader.Name = "LabelHeader";
             this.LabelHeader.Size = new System.Drawing.Size(414, 35);
             this.LabelHeader.TabIndex = 0;
-            this.LabelHeader.Text = "ŞİFRE DEĞİŞTİR";
+            this.LabelHeader.Text = "PAROLA DEĞİŞTİR";
             this.LabelHeader.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // AstelChangePassword
@@ -215,6 +215,7 @@
             this.Name = "AstelChangePassword";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "AstelChangePassword";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AspChangePassword_FormClosing);
             this.Load += new System.EventHandler(this.AstelChangePassword_Load);
             this.Panel_BG.ResumeLayout(false);
             this.Panel_BG.PerformLayout();

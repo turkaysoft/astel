@@ -106,6 +106,12 @@
     <Compile Include="astel_modules\AstelPasswordGenerator.Designer.cs">
       <DependentUpon>AstelPasswordGenerator.cs</DependentUpon>
     </Compile>
+    <Compile Include="astel_modules\AstelPasswordPrompt.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="astel_modules\AstelPasswordPrompt.Designer.cs">
+      <DependentUpon>AstelPasswordPrompt.cs</DependentUpon>
+    </Compile>
     <Compile Include="astel_modules\AstelSignIn.cs">
       <SubType>Form</SubType>
     </Compile>

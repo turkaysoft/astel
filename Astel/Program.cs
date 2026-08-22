@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows.Forms;
 using System.Globalization;
 using System.Collections.Generic;
@@ -21,8 +22,19 @@ namespace Astel{
         public static readonly string updater_exe_name = "TSUpdater.exe";
         public static readonly string updater_old_exe_name = "TSUpdater.exe.old";
         // ======================================================================================================
+        // SINGLE INSTANCE MUTEX
+        private static readonly Mutex _singleInstance;
+        private static readonly bool _isFirstInstance;
+        static Program(){
+            _singleInstance = new Mutex(true, $@"Local\{Application.ProductName}_" + Environment.UserName, out _isFirstInstance);
+        }
+        // ======================================================================================================
         [STAThread]
         static void Main(){
+            if (!_isFirstInstance){
+                MessageBox.Show("Astel is already running.", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
             SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
             // CHECK WINDOWS VERSION
             try{
@@ -40,9 +52,10 @@ namespace Astel{
                 return;
             }
             // -----------------------------------
-            string bootstrap_mode = new TSSettingsModule(ts_session_file).TSReadSettings(ts_session_container, "SessionMode");
-            Form targetForm = (bootstrap_mode == "1") ? (Form)new AstelLogin() : new AstelSignIn();
+            Form targetForm = File.Exists(ts_data_xml_path) ? (Form)new AstelLogin() : (Form)new AstelSignIn();
             Application.Run(targetForm);
+            // SECURITY SAFETY NET
+            TS_AES_Encryption.ClearKey();
         }
         // TS HYPER LOADER WRAPPER
         // ======================================================================================================
@@ -66,8 +79,6 @@ namespace Astel{
                 }
                 // ENSURE SETTINGS
                 EnsureSettingsFileAndSchema();
-                // SESSION FILE CHECK
-                CheckSessionFile();
                 // DELETE OLD TS UPDATER EXE
                 DeleteOldUpdater();
                 return true;
@@ -76,23 +87,13 @@ namespace Astel{
                 return false;
             }
         }
-        // CHECK SESSION FILE
-        // ======================================================================================================
-        private static void CheckSessionFile(){
-            if (!File.Exists(ts_session_file)){
-                try{
-                    Directory.CreateDirectory(ts_session_root_path);
-                    TSSettingsModule session_settings_save = new TSSettingsModule(ts_session_file);
-                    session_settings_save.TSWriteSettings(ts_session_container, "SessionMode", "0");
-                }catch (Exception){ }
-            }
-        }
         // OLD UPDATER DELETION WITH RETRY
         // ======================================================================================================
         private static void DeleteOldUpdater(){
             try{
-                if (File.Exists(updater_old_exe_name)){
-                    File.Delete(updater_old_exe_name);
+                string updaterOldPath = Path.Combine(Application.StartupPath, updater_old_exe_name);
+                if (string.Equals(Path.GetDirectoryName(updaterOldPath), Application.StartupPath, StringComparison.OrdinalIgnoreCase) && File.Exists(updaterOldPath)){
+                    File.Delete(updaterOldPath);
                 }
             }catch{ }
         }
@@ -203,7 +204,7 @@ namespace Astel{
             yield return ("SafetyWarnings", () => "1");
             yield return ("PasswordMask", () => "1");
             // APPLICATION LOGIN
-            yield return ("LoginPassVisible", () => "1");
+            yield return ("LoginPassVisible", () => "0");
         }
     }
 }

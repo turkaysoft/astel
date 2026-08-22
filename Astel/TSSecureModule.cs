@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml.Linq;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 using System.Security.Cryptography;
 
 namespace Astel
@@ -15,8 +16,6 @@ namespace Astel
 
         public static string ts_session_root_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Application.CompanyName?.Replace("ü", "u") ?? "Company", Application.ProductName);
         public static string ts_data_xml_path = Path.Combine(ts_session_root_path, Application.ProductName + "Data.xml");
-        public static string ts_session_file = Path.Combine(ts_session_root_path, Application.ProductName + "Session.ini");
-        public static string ts_session_container = Path.GetFileNameWithoutExtension(ts_session_file);
         public static string ts_data_backup_folder = Path.Combine(ts_session_root_path, "backups");
         public static string ts_data_file_name = Path.GetFileName(ts_data_xml_path);
         public static string ts_data_backup_extension_astel = ".astel";
@@ -24,10 +23,12 @@ namespace Astel
         public static string ts_data_backup_extension_csv = ".csv";
 
         // ============================================================
-        // ITERATION COUNTS
+        // VAULT FORMAT (v0x02)
         // ============================================================
 
-        public const int PasswordHashIterations = 100_000;
+        public const string VaultV0x02 = "2";
+        public const string VaultKDF = "PBKDF2-SHA512";
+        public const int VaultIterations = 210_000;
 
         // ======================================================================================================
         // MODULE USER FRIENDLY MESSAGE SEND
@@ -69,24 +70,44 @@ namespace Astel
             private const int IvSize = 16;
             private const int HmacSize = 64;
             private const int AesKeySize = 32;
+            private const byte PayloadVersion = 0x02;
             private static readonly object _keyLock = new object();
 
-            // --------------------------------------------------------
+            // ============================================================
             // SET MASTER KEY
-            // --------------------------------------------------------
+            // ============================================================
 
             public static void SetKey(byte[] key)
             {
-                if (key == null)
-                    throw new ArgumentNullException(nameof(key), GetErrorMessage("AES_KeyNull"));
-                if (key.Length != 32)
-                    throw new ArgumentException(GetErrorMessage("AES_KeyLengthInvalid"), nameof(key));
-                if (MasterKey != null)
-                    Array.Clear(MasterKey, 0, MasterKey.Length);
-                MasterKey = (byte[])key.Clone();
+                lock (_keyLock)
+                {
+                    if (key == null)
+                        throw new ArgumentNullException(nameof(key), GetErrorMessage("AES_KeyNull"));
+                    if (key.Length != AesKeySize)
+                        throw new ArgumentException(string.Format(GetErrorMessage("AES_KeyLengthInvalid"), AesKeySize, AesKeySize * 8), nameof(key));
+                    if (MasterKey != null)
+                        Array.Clear(MasterKey, 0, MasterKey.Length);
+                    MasterKey = (byte[])key.Clone();
+                }
             }
 
-            // --------------------------------------------------------
+            // ============================================================
+            // CLEAR MASTER KEY (lock / shutdown)
+            // ============================================================
+
+            public static void ClearKey()
+            {
+                lock (_keyLock)
+                {
+                    if (MasterKey != null)
+                    {
+                        Array.Clear(MasterKey, 0, MasterKey.Length);
+                        MasterKey = null;
+                    }
+                }
+            }
+
+            // ============================================================
             // ENCRYPT (Enhanced with secure cleanup)
             //
             // FORMAT:
@@ -98,9 +119,17 @@ namespace Astel
             //   ciphertext ||
             //   hmac(64)
             // )
-            // --------------------------------------------------------
+            // ============================================================
 
             public static string TS_AES_Encrypt(string plainText)
+            {
+                lock (_keyLock)
+                {
+                    return TS_AES_EncryptCore(plainText);
+                }
+            }
+
+            private static string TS_AES_EncryptCore(string plainText)
             {
                 if (MasterKey == null)
                     throw new InvalidOperationException(GetErrorMessage("AES_MasterKeyNotSet"));
@@ -157,7 +186,7 @@ namespace Astel
                     // Build payload
                     using (var outMs = new MemoryStream())
                     {
-                        outMs.WriteByte(0x01); // version
+                        outMs.WriteByte(PayloadVersion); // version
                         outMs.Write(salt, 0, salt.Length);
                         outMs.Write(iv, 0, iv.Length);
                         outMs.Write(cipherBytes, 0, cipherBytes.Length);
@@ -185,11 +214,19 @@ namespace Astel
                 }
             }
 
-            // --------------------------------------------------------
+            // ============================================================
             // DECRYPT (Enhanced with secure cleanup)
-            // --------------------------------------------------------
+            // ============================================================
 
             public static string TS_AES_Decrypt(string base64Input)
+            {
+                lock (_keyLock)
+                {
+                    return TS_AES_DecryptCore(base64Input);
+                }
+            }
+
+            private static string TS_AES_DecryptCore(string base64Input)
             {
                 if (MasterKey == null)
                     throw new InvalidOperationException(GetErrorMessage("AES_MasterKeyNotSet"));
@@ -216,7 +253,7 @@ namespace Astel
                     int pos = 0;
                     // Version
                     byte version = input[pos++];
-                    if (version != 0x01)
+                    if (version != PayloadVersion)
                     {
                         throw new CryptographicException(GetFormattedErrorMessage("AES_UnsupportedVersion", version));
                     }
@@ -312,10 +349,10 @@ namespace Astel
                 }
             }
 
-            // --------------------------------------------------------
+            // ============================================================
             // HKDF-HMAC-SHA512 KEY DERIVATION (RFC 5869)
             // Extract-and-Expand approach
-            // --------------------------------------------------------
+            // ============================================================
 
             private static byte[] HKDF_SHA512(byte[] inputKeyMaterial, byte[] salt, byte[] info, int outputLength)
             {
@@ -384,9 +421,9 @@ namespace Astel
                 }
             }
 
-            // --------------------------------------------------------
+            // ============================================================
             // SUBKEY DERIVATION (Enhanced with HKDF)
-            // --------------------------------------------------------
+            // ============================================================
 
             private static byte[] DeriveSubKey(byte[] masterKey, byte[] salt, string info, int outputLength)
             {
@@ -409,9 +446,9 @@ namespace Astel
                 }
             }
 
-            // --------------------------------------------------------
+            // ============================================================
             // CONSTANT-TIME COMPARISON
-            // --------------------------------------------------------
+            // ============================================================
 
             public static bool FixedTimeEquals(byte[] a, byte[] b)
             {
@@ -427,66 +464,9 @@ namespace Astel
                 return diff == 0;
             }
 
-            // --------------------------------------------------------
-            // DERIVE AES KEY FROM ASTEL DATA FILE MATERIAL
-            // --------------------------------------------------------
-
-            public static byte[] DeriveKeyFromMaterial(byte[] keyMaterial, byte[] salt)
-            {
-                if (keyMaterial == null)
-                    throw new ArgumentNullException(nameof(keyMaterial), GetErrorMessage("DeriveSubKey_MasterKeyNull"));
-                if (salt == null)
-                    throw new ArgumentNullException(nameof(salt), GetErrorMessage("DeriveSubKey_SaltNull"));
-                byte[] infoBytes = null;
-                try
-                {
-                    infoBytes = Encoding.UTF8.GetBytes("AstelDataKey");
-                    return HKDF_SHA512(keyMaterial, salt, infoBytes, 32);
-                }
-                finally
-                {
-                    if (infoBytes != null)
-                        Array.Clear(infoBytes, 0, infoBytes.Length);
-                }
-            }
-
-            // --------------------------------------------------------
-            // EXTRACT KEY FROM ASTEL FILE
-            // --------------------------------------------------------
-
-            public static byte[] ExtractKeyFromAstelFile(string filePath)
-            {
-                try
-                {
-                    var doc = XDocument.Load(filePath);
-                    var root = doc.Element("Datas");
-                    string saltBase64 = root.Attribute("ST")?.Value?.Trim();
-                    string keyMaterialBase64 = root.Attribute("EK")?.Value?.Trim();
-                    if (string.IsNullOrEmpty(saltBase64) || string.IsNullOrEmpty(keyMaterialBase64))
-                    {
-                        return null;
-                    }
-                    byte[] salt = Convert.FromBase64String(saltBase64);
-                    byte[] keyMaterial = Convert.FromBase64String(keyMaterialBase64);
-                    try
-                    {
-                        return DeriveKeyFromMaterial(keyMaterial, salt);
-                    }
-                    finally
-                    {
-                        Array.Clear(keyMaterial, 0, keyMaterial.Length);
-                        Array.Clear(salt, 0, salt.Length);
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-            }
-
-            // --------------------------------------------------------
+            // ============================================================
             // TEMPORARY KEY CHANGE (For Import)
-            // --------------------------------------------------------
+            // ============================================================
 
             public static T WithTempKey<T>(byte[] tempKey, Func<T> action)
             {
@@ -522,31 +502,10 @@ namespace Astel
         }
 
         // ============================================================
-        // FIXED TIME STRING COMPARISON
+        // PBKDF2-HMAC-SHA512 (manual RFC 2898)
         // ============================================================
 
-        public static bool FixedTimeStringEquals(string a, string b)
-        {
-            if (a == null || b == null)
-                return false;
-            byte[] aBytes = Encoding.UTF8.GetBytes(a);
-            byte[] bBytes = Encoding.UTF8.GetBytes(b);
-            try
-            {
-                return TS_AES_Encryption.FixedTimeEquals(aBytes, bBytes);
-            }
-            finally
-            {
-                Array.Clear(aBytes, 0, aBytes.Length);
-                Array.Clear(bBytes, 0, bBytes.Length);
-            }
-        }
-
-        // ============================================================
-        // PBKDF2-HMAC-SHA256
-        // ============================================================
-
-        public static byte[] PBKDF2_HMAC_SHA256(string password, byte[] salt, int iterations, int outputBytes)
+        public static byte[] PBKDF2_HMAC_SHA512(string password, byte[] salt, int iterations, int outputBytes)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password), GetErrorMessage("PBKDF2_PasswordNull"));
@@ -556,89 +515,120 @@ namespace Astel
                 throw new ArgumentOutOfRangeException(nameof(iterations), GetErrorMessage("PBKDF2_IterationsInvalid"));
             if (outputBytes <= 0)
                 throw new ArgumentOutOfRangeException(nameof(outputBytes), GetErrorMessage("PBKDF2_OutputBytesInvalid"));
-            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256))
-            {
-                return pbkdf2.GetBytes(outputBytes);
-            }
-        }
-
-        // ============================================================
-        // SESSION DATA PROTECTION (DPAPI)
-        // ============================================================
-
-        public class TS_SessionProtection
-        {
-            private static readonly byte[] s_additionalEntropy = Encoding.UTF8.GetBytes($"{Application.ProductName}_Session_Protection_v2");
-            public static string ProtectSessionData(string plainData)
-            {
-                if (string.IsNullOrEmpty(plainData))
-                    throw new ArgumentNullException(nameof(plainData), GetErrorMessage("Session_PlainDataNull"));
-                byte[] plainBytes = null;
-                try
-                {
-                    plainBytes = Encoding.UTF8.GetBytes(plainData);
-                    byte[] encrypted = ProtectedData.Protect(plainBytes, s_additionalEntropy, DataProtectionScope.CurrentUser);
-                    return Convert.ToBase64String(encrypted);
-                }
-                finally
-                {
-                    if (plainBytes != null)
-                        Array.Clear(plainBytes, 0, plainBytes.Length);
-                }
-            }
-            public static string UnprotectSessionData(string protectedData)
-            {
-                if (string.IsNullOrEmpty(protectedData))
-                    throw new ArgumentNullException(nameof(protectedData), GetErrorMessage("Session_ProtectedDataNull"));
-                byte[] encrypted = null;
-                byte[] plainBytes = null;
-                try
-                {
-                    encrypted = Convert.FromBase64String(protectedData);
-                    plainBytes = ProtectedData.Unprotect(encrypted, s_additionalEntropy, DataProtectionScope.CurrentUser);
-                    return Encoding.UTF8.GetString(plainBytes);
-                }
-                finally
-                {
-                    if (encrypted != null)
-                        Array.Clear(encrypted, 0, encrypted.Length);
-                    if (plainBytes != null)
-                        Array.Clear(plainBytes, 0, plainBytes.Length);
-                }
-            }
-        }
-
-        // ============================================================
-        // PASSWORD HASH
-        // ============================================================
-
-        public static string TSHashPassword(string password, string saltBase64, int iterations = PasswordHashIterations)
-        {
-            if (password == null)
-                throw new ArgumentNullException(nameof(password), GetErrorMessage("Hash_PasswordNull"));
-            if (saltBase64 == null)
-                throw new ArgumentNullException(nameof(saltBase64), GetErrorMessage("Hash_SaltNull"));
-            byte[] salt;
+            const int hLen = 64;
+            byte[] passwordBytes = null;
+            byte[] blockInput = null;
+            byte[] u = null;
+            byte[] uPrev = null;
+            byte[] next = null;
+            byte[] result = new byte[outputBytes];
             try
             {
-                salt = Convert.FromBase64String(saltBase64);
-            }
-            catch (FormatException)
-            {
-                throw new ArgumentException(GetErrorMessage("Hash_SaltInvalid"));
-            }
-            byte[] hash = null;
-            try
-            {
-                hash = PBKDF2_HMAC_SHA256(password, salt, iterations, 32);
-                return Convert.ToBase64String(hash);
+                passwordBytes = Encoding.UTF8.GetBytes(password);
+                using (var hmac = new HMACSHA512(passwordBytes))
+                {
+                    int l = (outputBytes + hLen - 1) / hLen;
+                    for (int block = 1; block <= l; block++)
+                    {
+                        // U1 = PRF(P, S || INT(i))
+                        blockInput = new byte[salt.Length + 4];
+                        Buffer.BlockCopy(salt, 0, blockInput, 0, salt.Length);
+                        blockInput[salt.Length] = (byte)((block >> 24) & 0xFF);
+                        blockInput[salt.Length + 1] = (byte)((block >> 16) & 0xFF);
+                        blockInput[salt.Length + 2] = (byte)((block >> 8) & 0xFF);
+                        blockInput[salt.Length + 3] = (byte)(block & 0xFF);
+                        uPrev = hmac.ComputeHash(blockInput);
+                        Array.Clear(blockInput, 0, blockInput.Length);
+                        blockInput = null;
+                        u = (byte[])uPrev.Clone();
+                        for (int i = 1; i < iterations; i++)
+                        {
+                            next = hmac.ComputeHash(uPrev);
+                            for (int j = 0; j < hLen; j++)
+                            {
+                                u[j] ^= next[j];
+                            }
+                            Array.Clear(uPrev, 0, uPrev.Length);
+                            uPrev = next;
+                            next = null;
+                        }
+                        int copyLen = Math.Min(hLen, outputBytes - (block - 1) * hLen);
+                        Buffer.BlockCopy(u, 0, result, (block - 1) * hLen, copyLen);
+                        Array.Clear(u, 0, u.Length);
+                        u = null;
+                        Array.Clear(uPrev, 0, uPrev.Length);
+                        uPrev = null;
+                    }
+                }
+                return result;
             }
             finally
             {
-                if (hash != null)
-                    Array.Clear(hash, 0, hash.Length);
-                if (salt != null)
-                    Array.Clear(salt, 0, salt.Length);
+                if (passwordBytes != null)
+                    Array.Clear(passwordBytes, 0, passwordBytes.Length);
+                if (blockInput != null)
+                    Array.Clear(blockInput, 0, blockInput.Length);
+                if (u != null)
+                    Array.Clear(u, 0, u.Length);
+                if (uPrev != null)
+                    Array.Clear(uPrev, 0, uPrev.Length);
+                if (next != null)
+                    Array.Clear(next, 0, next.Length);
+            }
+        }
+
+        // ============================================================
+        // VAULT MASTER KEY DERIVATION (v0x02)
+        // ============================================================
+        // PBKDF2-HMAC-SHA512(password, AS, IT, 64)
+        //   [0..31]  = AES-256 field-encryption master key
+        //   [32..63] = verifier (PV)
+
+        public static (byte[] Key, byte[] Verifier) DeriveVaultKey(string password, byte[] salt, int iterations)
+        {
+            if (salt == null)
+                throw new ArgumentNullException(nameof(salt), GetErrorMessage("PBKDF2_SaltNull"));
+            byte[] derived = null;
+            try
+            {
+                derived = PBKDF2_HMAC_SHA512(password, salt, iterations, 64);
+                byte[] key = new byte[32];
+                byte[] verifier = new byte[32];
+                Buffer.BlockCopy(derived, 0, key, 0, 32);
+                Buffer.BlockCopy(derived, 32, verifier, 0, 32);
+                return (key, verifier);
+            }
+            finally
+            {
+                if (derived != null)
+                    Array.Clear(derived, 0, derived.Length);
+            }
+        }
+
+        // ============================================================
+        // ATOMIC XML SAVE
+        // ============================================================
+
+        public static void TSXmlAtomicSave(XDocument doc, string path)
+        {
+            if (doc == null)
+                throw new ArgumentNullException(nameof(doc));
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path));
+            string dir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            string tempPath = path + ".tmp";
+            doc.Save(tempPath);
+            if (File.Exists(path))
+            {
+                File.Replace(tempPath, path, null);
+            }
+            else
+            {
+                File.Move(tempPath, path);
             }
         }
 
@@ -666,32 +656,126 @@ namespace Astel
         }
 
         // ============================================================
-        // SECURE RANDOM STRING
+        // SAFE URL BUILDER (http/https only)
         // ============================================================
 
-        public static string GenerateSecureRandomString(int strLength)
+        public static string TryBuildSafeUrl(string input)
         {
-            if (strLength <= 0)
-                throw new ArgumentOutOfRangeException(nameof(strLength), GetErrorMessage("Random_LengthInvalid"));
-            const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-            int charsetSize = chars.Length;
-            int rejectionThreshold = byte.MaxValue - (byte.MaxValue % charsetSize);
-            char[] result = new char[strLength];
-            using (var rng = RandomNumberGenerator.Create())
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+            string trimmed = input.Trim();
+            if (!Uri.TryCreate(trimmed, UriKind.Absolute, out Uri uri))
+                return string.Empty;
+            if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                return trimmed;
+            return string.Empty;
+        }
+
+        // ============================================================
+        // SECURITY STATE
+        // ============================================================
+
+        // ============================================================
+        // CLIPBOARD SECURITY: remember copied text, clear on shutdown
+        // ============================================================
+
+        public static class TSClipboardSecurity
+        {
+            internal static string _lastCopiedClipboard = null;
+
+            public static void TrackCopiedText(string copiedText)
             {
-                byte[] buffer = new byte[1];
-                for (int i = 0; i < strLength; i++)
+                _lastCopiedClipboard = copiedText;
+                ScheduleClipboardClear(copiedText);
+            }
+
+            public static void ClearOwnClipboardIfPresent()
+            {
+                try
                 {
-                    byte randomByte;
-                    do
+                    if (_lastCopiedClipboard != null && Clipboard.GetText() == _lastCopiedClipboard)
                     {
-                        rng.GetBytes(buffer);
-                        randomByte = buffer[0];
-                    } while (randomByte >= rejectionThreshold);
-                    result[i] = chars[randomByte % charsetSize];
+                        Clipboard.Clear();
+                    }
+                }
+                catch { }
+                finally
+                {
+                    _lastCopiedClipboard = null;
                 }
             }
-            return "ts_" + new string(result);
+
+            private static void ScheduleClipboardClear(string copiedText)
+            {
+                string captured = copiedText;
+                TaskScheduler scheduler;
+                try
+                {
+                    scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                }
+                catch (InvalidOperationException)
+                {
+                    scheduler = TaskScheduler.Default;
+                }
+                Task.Delay(30000).ContinueWith(_ =>
+                {
+                    try
+                    {
+                        if (Clipboard.GetText() == captured)
+                        {
+                            Clipboard.Clear();
+                        }
+                    }
+                    catch { }
+                }, scheduler);
+            }
+        }
+
+        // ============================================================
+        // LOGIN / UNLOCK THROTTLE: 3 failed attempts -> 30 s lockout
+        // ============================================================
+
+        public class TSLoginThrottle
+        {
+            public const int MaxAttempts = 3;
+            public const int LockoutSeconds = 30;
+
+            private int _failedAttempts = 0;
+            private int _lockoutRemaining = 0;
+            private DateTime _lockoutUntil = DateTime.MinValue;
+
+            public int FailedAttempts => _failedAttempts;
+            public bool IsLockedOut => DateTime.Now < _lockoutUntil;
+            public int RemainingSeconds => (int)(_lockoutUntil - DateTime.Now).TotalSeconds;
+            public int LockoutRemaining => _lockoutRemaining;
+            public bool ShouldStartLockout => _failedAttempts >= MaxAttempts;
+
+            public void RecordFailure() => _failedAttempts++;
+
+            public void StartLockout()
+            {
+                _lockoutUntil = DateTime.Now.AddSeconds(LockoutSeconds);
+                _lockoutRemaining = LockoutSeconds;
+                _failedAttempts = MaxAttempts;
+            }
+
+            public bool Tick()
+            {
+                _lockoutRemaining--;
+                if (_lockoutRemaining <= 0)
+                {
+                    Reset();
+                    return true;
+                }
+                return false;
+            }
+
+            public void Reset()
+            {
+                _failedAttempts = 0;
+                _lockoutRemaining = 0;
+                _lockoutUntil = DateTime.MinValue;
+            }
         }
     }
 }

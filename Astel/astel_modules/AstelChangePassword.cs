@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Xml.Linq;
 // TS MODULES
 using static Astel.TSModules;
 using static Astel.TSSecureModule;
@@ -104,8 +106,8 @@ namespace Astel.astel_modules{
                 }));
                 return;
             }
-            if (password_new.Length < 12 || password_new.Length > 32){
-                TS_MessageBoxEngine.TS_MessageBox(this, 2, software_lang.TSReadLangs("AstelChangePassword", "asp_pass_req_info"));
+            if (password_new.Length < 12 || password_new.Length > 128){
+                TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelChangePassword", "asp_pass_req_info"), 12, 128));
                 BeginInvoke(new Action(() => {
                     TxtNewPassword.Focus();
                 }));
@@ -122,42 +124,100 @@ namespace Astel.astel_modules{
             TxtNewPasswordRepeat.Enabled = false;
             BtnChangePassword.Enabled = false;
             //
-            bool change_password_status = await Task.Run(async () =>{
+            bool change_password_status = await Task.Run(() =>{
+                byte[] oldSaltBytes = null;
+                byte[] oldVerifier = null;
+                byte[] newSaltBytes = null;
+                byte[] newKey = null;
+                byte[] newVerifier = null;
                 try{
-                    TSSettingsModule read = new TSSettingsModule(ts_session_file);
-                    string protected_salt = read.TSReadSettings(ts_session_container, "PasswordSalt");
-                    string protected_password = read.TSReadSettings(ts_session_container, "PasswordHash");
-                    if (string.IsNullOrEmpty(protected_salt) || string.IsNullOrEmpty(protected_password)){
+                    var doc = XDocument.Load(ts_data_xml_path);
+                    var root = doc.Element("Datas");
+                    string vaultV = root.Attribute("V")?.Value?.Trim();
+                    string saltBase64 = root.Attribute("AS")?.Value?.Trim();
+                    string itStr = root.Attribute("IT")?.Value?.Trim();
+                    string kdf = root.Attribute("KDF")?.Value?.Trim();
+                    string pvBase64 = root.Attribute("PV")?.Value?.Trim();
+                    bool isLegacy = root.Attribute("EK")?.Value != null || root.Attribute("ST")?.Value != null;
+                    if (isLegacy || vaultV != TSSecureModule.VaultV0x02 || kdf != TSSecureModule.VaultKDF || string.IsNullOrEmpty(saltBase64) || string.IsNullOrEmpty(itStr) || string.IsNullOrEmpty(pvBase64)){
                         return false;
                     }
+                    if (!int.TryParse(itStr, out int iterations) || iterations <= 0){
+                        return false;
+                    }
+                    oldSaltBytes = Convert.FromBase64String(saltBase64);
+                    oldVerifier = Convert.FromBase64String(pvBase64);
+                    byte[] oldKey = null;
+                    byte[] currentVerifier = null;
                     try{
-                        string saved_salt = TS_SessionProtection.UnprotectSessionData(protected_salt);
-                        string saved_password = TS_SessionProtection.UnprotectSessionData(protected_password);
-                        var verifyTask = Task.Run(() => TSHashPassword(password_current, saved_salt, TSSecureModule.PasswordHashIterations));
-                        string new_salt = GenerateSalt(32);
-                        var hashNewTask = Task.Run(() => TSHashPassword(password_new, new_salt, TSSecureModule.PasswordHashIterations));
-                        await Task.WhenAll(verifyTask, hashNewTask);
-                        string hashed_current = verifyTask.Result;
-                        if (!FixedTimeStringEquals(hashed_current, saved_password)){
+                        (oldKey, currentVerifier) = DeriveVaultKey(password_current, oldSaltBytes, iterations);
+                        if (!TS_AES_Encryption.FixedTimeEquals(currentVerifier, oldVerifier)){
                             return false;
                         }
-                        string new_hashed = hashNewTask.Result;
-                        string protected_new_salt = TS_SessionProtection.ProtectSessionData(new_salt);
-                        string protected_new_hash = TS_SessionProtection.ProtectSessionData(new_hashed);
-                        TSSettingsModule write = new TSSettingsModule(ts_session_file);
-                        write.TSWriteSettings(ts_session_container, "PasswordSalt", protected_new_salt);
-                        write.TSWriteSettings(ts_session_container, "PasswordHash", protected_new_hash);
+                        // Derive new key/verifier
+                        string newSalt = GenerateSalt(32);
+                        newSaltBytes = Convert.FromBase64String(newSalt);
+                        (newKey, newVerifier) = DeriveVaultKey(password_new, newSaltBytes, TSSecureModule.VaultIterations);
+                        // Phase 1: decrypt every field with the OLD key
+                        TS_AES_Encryption.SetKey(oldKey);
+                        var plaintexts = new List<(XElement Data, string Service, string Email, string Url, string Password, string Note, string PassChangeDate)>();
+                        foreach (var data in root.Elements("Data")){
+                            plaintexts.Add((
+                                data,
+                                data.Element("Service") != null ? TS_AES_Encryption.TS_AES_Decrypt(data.Element("Service").Value) : string.Empty,
+                                data.Element("Email") != null ? TS_AES_Encryption.TS_AES_Decrypt(data.Element("Email").Value) : string.Empty,
+                                data.Element("Url") != null ? TS_AES_Encryption.TS_AES_Decrypt(data.Element("Url").Value) : string.Empty,
+                                data.Element("Password") != null ? TS_AES_Encryption.TS_AES_Decrypt(data.Element("Password").Value) : string.Empty,
+                                data.Element("Note") != null ? TS_AES_Encryption.TS_AES_Decrypt(data.Element("Note").Value) : string.Empty,
+                                data.Element("PassChangeDate") != null ? TS_AES_Encryption.TS_AES_Decrypt(data.Element("PassChangeDate").Value) : string.Empty
+                            ));
+                        }
+                        // Phase 2: re-encrypt every field with the NEW key.
+                        // WithTempKey keeps the old key as master until the save succeeds.
+                        TS_AES_Encryption.WithTempKey(newKey, () => {
+                            foreach (var item in plaintexts){
+                                item.Data.Element("Service")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Service));
+                                item.Data.Element("Email")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Email));
+                                item.Data.Element("Url")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Url));
+                                item.Data.Element("Password")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Password));
+                                item.Data.Element("Note")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Note));
+                                item.Data.Element("PassChangeDate")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.PassChangeDate));
+                            }
+                            return true;
+                        });
+                        // Update vault metadata + atomic save
+                        root.SetAttributeValue("AS", Convert.ToBase64String(newSaltBytes));
+                        root.SetAttributeValue("IT", TSSecureModule.VaultIterations.ToString());
+                        root.SetAttributeValue("KDF", TSSecureModule.VaultKDF);
+                        root.SetAttributeValue("PV", Convert.ToBase64String(newVerifier));
+                        TSXmlAtomicSave(doc, ts_data_xml_path);
+                        // Only now commit the new key as the running master key
+                        TS_AES_Encryption.SetKey(newKey);
                         return true;
-                    }catch(Exception){
-                        return false;
+                    }finally{
+                        if (oldKey != null)
+                            Array.Clear(oldKey, 0, oldKey.Length);
+                        if (currentVerifier != null)
+                            Array.Clear(currentVerifier, 0, currentVerifier.Length);
                     }
                 }catch(Exception){
                     return false;
+                }finally{
+                    if (oldSaltBytes != null)
+                        Array.Clear(oldSaltBytes, 0, oldSaltBytes.Length);
+                    if (oldVerifier != null)
+                        Array.Clear(oldVerifier, 0, oldVerifier.Length);
+                    if (newSaltBytes != null)
+                        Array.Clear(newSaltBytes, 0, newSaltBytes.Length);
+                    if (newKey != null)
+                        Array.Clear(newKey, 0, newKey.Length);
+                    if (newVerifier != null)
+                        Array.Clear(newVerifier, 0, newVerifier.Length);
                 }
             });
             //
             if (change_password_status){
-                TS_MessageBoxEngine.TS_MessageBox(this, 1, string.Format(software_lang.TSReadLangs("AstelChangePassword", "asp_pass_change_success"), "\n"));
+                TS_MessageBoxEngine.TS_MessageBox(this, 1, string.Format(software_lang.TSReadLangs("AstelChangePassword", "asp_pass_change_success"), "\n\n", "\n\n"));
                 Hide();
             }else{
                 TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelChangePassword", "asp_current_pass_fail_info"), "\n"));
@@ -181,6 +241,16 @@ namespace Astel.astel_modules{
                 TxtNewPassword.UseSystemPasswordChar = true;
                 TxtNewPasswordRepeat.UseSystemPasswordChar = true;
             }
+        }
+        // FORM CLOSING (memory safe)
+        // ======================================================================================================
+        private void AspChangePassword_FormClosing(object sender, FormClosingEventArgs e){
+            if (TxtCurrentPassword != null)
+                TxtCurrentPassword.Text = "";
+            if (TxtNewPassword != null)
+                TxtNewPassword.Text = "";
+            if (TxtNewPasswordRepeat != null)
+                TxtNewPasswordRepeat.Text = "";
         }
     }
 }

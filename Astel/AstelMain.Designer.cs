@@ -177,6 +177,7 @@
             this.DataMainTable.Size = new System.Drawing.Size(988, 377);
             this.DataMainTable.TabIndex = 0;
             this.DataMainTable.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataMainTable_CellClick);
+            this.DataMainTable.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             // 
             // Panel_Footer
             // 
@@ -423,7 +424,7 @@
             this.TxtService.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtService.Location = new System.Drawing.Point(0, 32);
             this.TxtService.Margin = new System.Windows.Forms.Padding(3, 3, 3, 12);
-            this.TxtService.MaxLength = 64;
+            this.TxtService.MaxLength = 128;
             this.TxtService.Name = "TxtService";
             this.TxtService.Size = new System.Drawing.Size(200, 25);
             this.TxtService.TabIndex = 1;
@@ -515,7 +516,7 @@
             this.TxtPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtPassword.Location = new System.Drawing.Point(0, 150);
             this.TxtPassword.Margin = new System.Windows.Forms.Padding(3, 3, 3, 12);
-            this.TxtPassword.MaxLength = 64;
+            this.TxtPassword.MaxLength = 128;
             this.TxtPassword.Name = "TxtPassword";
             this.TxtPassword.Size = new System.Drawing.Size(279, 25);
             this.TxtPassword.TabIndex = 7;
@@ -539,7 +540,7 @@
             this.TxtEmail.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold);
             this.TxtEmail.Location = new System.Drawing.Point(0, 91);
             this.TxtEmail.Margin = new System.Windows.Forms.Padding(3, 3, 3, 12);
-            this.TxtEmail.MaxLength = 64;
+            this.TxtEmail.MaxLength = 128;
             this.TxtEmail.Name = "TxtEmail";
             this.TxtEmail.Size = new System.Drawing.Size(312, 25);
             this.TxtEmail.TabIndex = 4;

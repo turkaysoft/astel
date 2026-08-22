@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -8,20 +8,27 @@ using static Astel.TSModules;
 using static Astel.TSSecureModule;
 
 namespace Astel.astel_modules{
-    public partial class AstelLogin : Form{
-        public AstelLogin(){
+    public partial class AstelPasswordPrompt : Form{
+        // SOURCE VAULT UNLOCK DIALOG (used by .astel import / drag&drop)
+        // ======================================================================================================
+        private readonly string sourceFilePath;
+        public byte[] SourceKey { get; private set; }
+        public AstelPasswordPrompt(string filePath){
             InitializeComponent();
+            sourceFilePath = filePath;
             _lockoutTimer = new Timer{
                 Interval = 1000
             };
             _lockoutTimer.Tick += LockoutTimer_Tick;
         }
-        // LOGIN PRELOADER
+        // IMPORT THROTTLE: 3 failed unlock attempts -> 30 s in-memory lockout
         // ======================================================================================================
-        string login_global_lang;
         private readonly TSLoginThrottle _loginThrottle = new TSLoginThrottle();
         private readonly Timer _lockoutTimer;
-        public void Login_system_preloader(){
+        // PRELOADER
+        // ======================================================================================================
+        string prompt_global_lang;
+        public void Prompt_system_preloader(){
             try{
                 TSSettingsModule software_read_settings = new TSSettingsModule(ts_sf);
                 int theme_mode = int.TryParse(software_read_settings.TSReadSettings(ts_settings_container, "ThemeStatus"), out int the_status) && (the_status == 0 || the_status == 1 || the_status == 2) ? the_status : 1;
@@ -54,26 +61,27 @@ namespace Astel.astel_modules{
                     }
                 }
                 //
-                TSImageRenderer(BtnLogin, theme_mode == 1 ? Properties.Resources.ct_login_light : Properties.Resources.ct_login_dark, 18, ContentAlignment.MiddleRight);
-                //
                 LabelHeader.BackColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_BGColor2");
                 LabelHeader.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_LabelColor1");
                 CheckPassword.ForeColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_LabelColor1");
                 CheckPassword.CheckedColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_AccentColor");
                 CheckPassword.CheckMarkColor = TS_ThemeEngine.ColorMode(theme_mode, "TSBT_BGColor2");
                 CheckPassword.UncheckedBorderColor = TS_ThemeEngine.ColorMode(theme_mode, "CheckBoxUnCheckBorderColor");
+                //
+                TSImageRenderer(BtnUnlock, theme_mode == 1 ? Properties.Resources.ct_unlock_light : Properties.Resources.ct_unlock_dark, 18, ContentAlignment.MiddleRight);
+                //
                 // ======================================================================================================
                 string lang_code = software_read_settings.TSReadSettings(ts_settings_container, "LanguageStatus");
                 string selectedLangCode = TSPreloaderSetDefaultLanguage(lang_code);
                 string lang_file_path = AllLanguageFiles[selectedLangCode];
                 TSGetLangs software_lang = new TSGetLangs(lang_file_path);
-                login_global_lang = lang_file_path;
+                prompt_global_lang = lang_file_path;
                 // TEXTS
-                Text = string.Format(software_lang.TSReadLangs("AstelLogin", "al_title"), Application.ProductName);
-                LabelHeader.Text = string.Format(software_lang.TSReadLangs("AstelLogin", "al_header"), Environment.UserName);
-                LabelPassword.Text = software_lang.TSReadLangs("AstelLogin", "al_label_password");
-                CheckPassword.Text = software_lang.TSReadLangs("AstelLogin", "al_visible");
-                BtnLogin.Text = " " + software_lang.TSReadLangs("AstelLogin", "al_btn");
+                Text = string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_title"), Application.ProductName);
+                LabelHeader.Text = software_lang.TSReadLangs("AstelPasswordPrompt", "ap_header");
+                LabelPassword.Text = software_lang.TSReadLangs("AstelPasswordPrompt", "ap_label_password");
+                CheckPassword.Text = software_lang.TSReadLangs("AstelPasswordPrompt", "ap_visible");
+                BtnUnlock.Text = " " + software_lang.TSReadLangs("AstelPasswordPrompt", "ap_btn");
                 // PASS VISIBLE MODE
                 string pass_vis_mode = software_read_settings.TSReadSettings(ts_settings_container, "LoginPassVisible");
                 if (string.IsNullOrEmpty(pass_vis_mode)){ pass_vis_mode = "0"; }
@@ -82,50 +90,48 @@ namespace Astel.astel_modules{
                 CheckPassword.Checked = pass_vis_mode_bool;
             }catch (Exception){ }
         }
-        // LOGIN LOAD
+        // LOAD
         // ======================================================================================================
-        private void AstelLogin_Load(object sender, EventArgs e){
+        private void AstelPasswordPrompt_Load(object sender, EventArgs e){
             TxtPassword.UseSystemPasswordChar = true;
-            AcceptButton = BtnLogin;
+            AcceptButton = BtnUnlock;
             //
-            Login_system_preloader();
+            Prompt_system_preloader();
         }
-        // LOGIN BTN
+        // UNLOCK BTN
         // ======================================================================================================
-        private async void BtnLogin_Click(object sender, EventArgs e){
-            await Login_system();
+        private async void BtnUnlock_Click(object sender, EventArgs e){
+            await Unlock_source_vault();
         }
-        // LOGIN FUNCTION
+        // UNLOCK FUNCTION
         // ======================================================================================================
-        private async Task Login_system(){
-            TSGetLangs software_lang = new TSGetLangs(login_global_lang);
+        private async Task Unlock_source_vault(){
+            TSGetLangs software_lang = new TSGetLangs(prompt_global_lang);
             string get_password = TxtPassword.Text.Trim();
             if (_loginThrottle.IsLockedOut){
                 int remaining = _loginThrottle.RemainingSeconds;
                 if (remaining > 0){
-                    TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelLogin", "al_throttle_active"), remaining));
+                    TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_throttle_active"), remaining));
                     return;
                 }
                 _loginThrottle.Reset();
             }
             if (string.IsNullOrEmpty(get_password)){
-                TS_MessageBoxEngine.TS_MessageBox(this, 2, software_lang.TSReadLangs("AstelLogin", "al_password_info"));
+                TS_MessageBoxEngine.TS_MessageBox(this, 2, software_lang.TSReadLangs("AstelPasswordPrompt", "ap_password_info"));
                 return;
             }
             //
-            Text = $"{string.Format(software_lang.TSReadLangs("AstelLogin", "al_title"), Application.ProductName)} - " + software_lang.TSReadLangs("AstelLogin", "al_check_login");
+            Text = $"{string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_title"), Application.ProductName)} - " + software_lang.TSReadLangs("AstelPasswordPrompt", "ap_check");
             TxtPassword.Enabled = false;
-            BtnLogin.Enabled = false;
+            BtnUnlock.Enabled = false;
             //
-            int login_result = 1;
-            bool login_status = await Task.Run(() =>{
-                // 0 = ok, 1 = wrong password, 2 = incompatible/legacy vault
+            bool unlock_status = await Task.Run(() =>{
                 byte[] saltBytes = null;
                 byte[] storedVerifier = null;
                 byte[] derivedKey = null;
                 byte[] verifier = null;
                 try{
-                    var doc = XDocument.Load(ts_data_xml_path);
+                    var doc = XDocument.Load(sourceFilePath);
                     var root = doc.Element("Datas");
                     string vaultV = root.Attribute("V")?.Value?.Trim();
                     string saltBase64 = root.Attribute("AS")?.Value?.Trim();
@@ -134,119 +140,84 @@ namespace Astel.astel_modules{
                     string pvBase64 = root.Attribute("PV")?.Value?.Trim();
                     bool isLegacy = root.Attribute("EK")?.Value != null || root.Attribute("ST")?.Value != null;
                     if (isLegacy || vaultV != TSSecureModule.VaultV0x02 || kdf != TSSecureModule.VaultKDF || string.IsNullOrEmpty(saltBase64) || string.IsNullOrEmpty(itStr) || string.IsNullOrEmpty(pvBase64)){
-                        login_result = 2;
                         return false;
                     }
                     if (!int.TryParse(itStr, out int iterations) || iterations <= 0){
-                        login_result = 2;
                         return false;
                     }
                     saltBytes = Convert.FromBase64String(saltBase64);
                     storedVerifier = Convert.FromBase64String(pvBase64);
                     (derivedKey, verifier) = DeriveVaultKey(get_password, saltBytes, iterations);
                     if (!TS_AES_Encryption.FixedTimeEquals(verifier, storedVerifier)){
-                        login_result = 1;
                         return false;
                     }
-                    TS_AES_Encryption.SetKey(derivedKey);
-                    login_result = 0;
+                    SourceKey = derivedKey;
                     return true;
-                }catch(Exception){
-                    if (login_result != 2)
-                        login_result = 1;
+                }catch (Exception){
                     return false;
                 }finally{
                     if (saltBytes != null)
                         Array.Clear(saltBytes, 0, saltBytes.Length);
                     if (storedVerifier != null)
                         Array.Clear(storedVerifier, 0, storedVerifier.Length);
-                    if (derivedKey != null)
-                        Array.Clear(derivedKey, 0, derivedKey.Length);
                     if (verifier != null)
                         Array.Clear(verifier, 0, verifier.Length);
                 }
             });
             //
-            if (login_status){
+            if (unlock_status){
                 _loginThrottle.Reset();
-                TxtPassword.Text = "";
-                new AstelMain().Show();
-                Hide();
-            }else if (login_result == 2){
-                TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("AstelLogin", "al_vault_incompatible"), "\n\n", "\n\n", Application.ProductName));
-                BeginInvoke(new Action(() =>{
-                    TxtPassword.Focus();
-                }));
+                DialogResult = DialogResult.OK;
+                Close();
             }else{
-                TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelLogin", "al_password_failed"), "\n\n"));
+                TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_password_failed"), "\n\n", "\n\n"));
                 _loginThrottle.RecordFailure();
-                TxtPassword.Text = "";
                 if (_loginThrottle.ShouldStartLockout){
-                    StartLoginLockout(software_lang);
+                    StartPromptLockout(software_lang);
                 }else{
-                    BeginInvoke(new Action(() =>{
-                        TxtPassword.Focus();
-                    }));
+                    TxtPassword.Text = "";
+                    TxtPassword.Enabled = true;
+                    BtnUnlock.Enabled = true;
+                    Text = string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_title"), Application.ProductName);
+                    TxtPassword.Focus();
                 }
             }
-            //
-            Text = string.Format(software_lang.TSReadLangs("AstelLogin", "al_title"), Application.ProductName);
-            TxtPassword.Enabled = true;
-            BtnLogin.Enabled = true;
         }
-        // LOGIN THROTTLE (3 failed attempts -> 30 s in-memory lockout)
+        // IMPORT THROTTLE: lock input for 30 s after 3 failed attempts
         // ======================================================================================================
-        private void StartLoginLockout(TSGetLangs software_lang){
+        private void StartPromptLockout(TSGetLangs software_lang){
             _loginThrottle.StartLockout();
-            BtnLogin.Enabled = false;
+            BtnUnlock.Enabled = false;
             TxtPassword.Enabled = false;
-            BtnLogin.Text = " " + string.Format(software_lang.TSReadLangs("AstelLogin", "al_throttle_countdown"), TSLoginThrottle.LockoutSeconds);
-            Text = string.Format(software_lang.TSReadLangs("AstelLogin", "al_title"), Application.ProductName) + " - " + string.Format(software_lang.TSReadLangs("AstelLogin", "al_throttle_info"), "\n\n", TSLoginThrottle.LockoutSeconds);
+            BtnUnlock.Text = " " + string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_throttle_countdown"), TSLoginThrottle.LockoutSeconds);
+            Text = string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_title"), Application.ProductName) + " - " + string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_throttle_active"), TSLoginThrottle.LockoutSeconds);
             _lockoutTimer.Start();
         }
         private void LockoutTimer_Tick(object sender, EventArgs e){
-            TSGetLangs software_lang = new TSGetLangs(login_global_lang);
+            TSGetLangs software_lang = new TSGetLangs(prompt_global_lang);
             if (_loginThrottle.Tick()){
                 _lockoutTimer.Stop();
-                BtnLogin.Enabled = true;
+                BtnUnlock.Enabled = true;
                 TxtPassword.Enabled = true;
-                Text = string.Format(software_lang.TSReadLangs("AstelLogin", "al_title"), Application.ProductName);
-                BtnLogin.Text = " " + software_lang.TSReadLangs("AstelLogin", "al_btn");
+                Text = string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_title"), Application.ProductName);
+                BtnUnlock.Text = " " + software_lang.TSReadLangs("AstelPasswordPrompt", "ap_btn");
             }else{
-                BtnLogin.Text = " " + string.Format(software_lang.TSReadLangs("AstelLogin", "al_throttle_countdown"), _loginThrottle.LockoutRemaining);
+                BtnUnlock.Text = " " + string.Format(software_lang.TSReadLangs("AstelPasswordPrompt", "ap_throttle_countdown"), _loginThrottle.LockoutRemaining);
             }
-        }
-        // RE-LOGIN AFTER AUTO-LOCK: clear the password box and re-apply UI state
-        // ======================================================================================================
-        public void ResetForRelogin(){
-            if (TxtPassword != null)
-                TxtPassword.Text = "";
-            _loginThrottle.Reset();
-            _lockoutTimer.Stop();
-            BtnLogin.Enabled = true;
-            TxtPassword.Enabled = true;
-            Login_system_preloader();
         }
         // CHECK PASSWORD VISIBLE
         // ======================================================================================================
         private void CheckPassword_CheckedChanged(object sender, EventArgs e){
-            if (CheckPassword.Checked == true){
-                TxtPassword.UseSystemPasswordChar = false;
-            }else if (CheckPassword.Checked == false){
-                TxtPassword.UseSystemPasswordChar = true;
-            }
-            try{
-                TSSettingsModule software_setting_save = new TSSettingsModule(ts_sf);
-                software_setting_save.TSWriteSettings(ts_settings_container, "LoginPassVisible", (CheckPassword.Checked ? 1 : 0).ToString());
-            }catch (Exception) { }
+            TxtPassword.UseSystemPasswordChar = !CheckPassword.Checked;
         }
         // EXIT
         // ======================================================================================================
-        private void AstelLogin_FormClosing(object sender, FormClosingEventArgs e) {
-            if (TxtPassword != null)
-                TxtPassword.Text = "";
-            TS_AES_Encryption.ClearKey();
-            Application.Exit();
+        private void AstelPasswordPrompt_FormClosing(object sender, FormClosingEventArgs e){
+            TxtPassword.Text = "";
+            if (DialogResult != DialogResult.OK && SourceKey != null){
+                Array.Clear(SourceKey, 0, SourceKey.Length);
+                SourceKey = null;
+            }
         }
     }
 }

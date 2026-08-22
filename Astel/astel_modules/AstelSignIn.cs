@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 // TS MODULES
 using static Astel.TSModules;
 using static Astel.TSSecureModule;
@@ -110,8 +111,8 @@ namespace Astel.astel_modules{
                 }));
                 return;
             }
-            if (password_1.Length < 12 || password_1.Length > 32){
-                TS_MessageBoxEngine.TS_MessageBox(this, 2, software_lang.TSReadLangs("AstelSignIn", "as_password_req_info"));
+            if (password_1.Length < 12 || password_1.Length > 128){
+                TS_MessageBoxEngine.TS_MessageBox(this, 2, string.Format(software_lang.TSReadLangs("AstelSignIn", "as_password_req_info"), 12, 128));
                 BeginInvoke(new Action(() => {
                     TxtPassword.Focus();
                 }));
@@ -122,24 +123,45 @@ namespace Astel.astel_modules{
                 return;
             }
             //
+            DialogResult loss_warning = TS_MessageBoxEngine.TS_MessageBox(this, 6, string.Format(software_lang.TSReadLangs("AstelSignIn", "as_password_loss_warning"), "\n\n", "\n\n", "\n\n", "\n\n"));
+            if (loss_warning != DialogResult.Yes){
+                return;
+            }
+            //
             Text = $"{string.Format(software_lang.TSReadLangs("AstelSignIn", "as_title"), Application.ProductName)} - " + software_lang.TSReadLangs("AstelSignIn", "as_check_signin");
             TxtPassword.Enabled = false;
             TxtPasswordRepeat.Enabled = false;
             BtnSignIn.Enabled = false;
             //
             bool set_password_status = await Task.Run(() =>{
+                byte[] saltBytes = null;
+                byte[] masterKey = null;
+                byte[] verifier = null;
                 try{
                     string salt = GenerateSalt(32);
-                    string hashed_password = TSHashPassword(password_1, salt, TSSecureModule.PasswordHashIterations);
-                    string crossLinker = GenerateSecureRandomString(32);
-                    TSSettingsModule software_setting_save = new TSSettingsModule(ts_session_file);
-                    software_setting_save.TSWriteSettings(ts_session_container, "SessionMode", "1");
-                    software_setting_save.TSWriteSettings(ts_session_container, "PasswordHash", TS_SessionProtection.ProtectSessionData(hashed_password));
-                    software_setting_save.TSWriteSettings(ts_session_container, "PasswordSalt", TS_SessionProtection.ProtectSessionData(salt));
-                    software_setting_save.TSWriteSettings(ts_session_container, "CrossLinker", TS_SessionProtection.ProtectSessionData(crossLinker));
+                    saltBytes = Convert.FromBase64String(salt);
+                    (masterKey, verifier) = DeriveVaultKey(password_1, saltBytes, TSSecureModule.VaultIterations);
+                    TS_AES_Encryption.SetKey(masterKey);
+                    // Create v0x02 vault
+                    var ts_xDoc = new XDocument(new XElement("Datas"));
+                    var root = ts_xDoc.Element("Datas");
+                    root.SetAttributeValue("V", TSSecureModule.VaultV0x02);
+                    root.SetAttributeValue("AS", salt);
+                    root.SetAttributeValue("IT", TSSecureModule.VaultIterations.ToString());
+                    root.SetAttributeValue("KDF", TSSecureModule.VaultKDF);
+                    root.SetAttributeValue("PV", Convert.ToBase64String(verifier));
+                    root.SetAttributeValue("SV", TS_VersionEngine.TS_SoftwareVersion(1));
+                    TSXmlAtomicSave(ts_xDoc, ts_data_xml_path);
                     return true;
                 }catch(Exception){
                     return false;
+                }finally{
+                    if (saltBytes != null)
+                        Array.Clear(saltBytes, 0, saltBytes.Length);
+                    if (masterKey != null)
+                        Array.Clear(masterKey, 0, masterKey.Length);
+                    if (verifier != null)
+                        Array.Clear(verifier, 0, verifier.Length);
                 }
             });
             //
@@ -169,6 +191,11 @@ namespace Astel.astel_modules{
         // EXIT
         // ======================================================================================================
         private void AstelSignIn_FormClosing(object sender, FormClosingEventArgs e){
+            if (TxtPassword != null)
+                TxtPassword.Text = "";
+            if (TxtPasswordRepeat != null)
+                TxtPasswordRepeat.Text = "";
+            TS_AES_Encryption.ClearKey();
             Application.Exit();
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace Astel.astel_modules
+namespace Astel.astel_modules
 {
     partial class AstelPasswordGenerator
     {
@@ -28,8 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.Panel_BG = new System.Windows.Forms.Panel();
+            this.BtnCopyPassword = new Astel.TSCustomButton();
+            this.PassGenProLabel = new Astel.TSCustomLabel();
+            this.PassGenProBG = new Astel.TSCustomPanel();
+            this.PassGenProFE = new Astel.TSCustomPanel();
             this.Panel_Mode = new Astel.TSCustomPanel();
             this.LabelMode = new Astel.TSCustomLabel();
             this.RadioMixed = new Astel.TSCustomRadioButton();
@@ -46,14 +49,17 @@
             this.BtnGenPass = new Astel.TSCustomButton();
             this.PassLenghtLabel = new Astel.TSCustomLabel();
             this.LabelHeader = new Astel.TSCustomLabel();
-            this.MainToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.Panel_BG.SuspendLayout();
+            this.PassGenProBG.SuspendLayout();
             this.Panel_Mode.SuspendLayout();
             this.Panel_Feature.SuspendLayout();
             this.SuspendLayout();
             // 
             // Panel_BG
             // 
+            this.Panel_BG.Controls.Add(this.BtnCopyPassword);
+            this.Panel_BG.Controls.Add(this.PassGenProLabel);
+            this.Panel_BG.Controls.Add(this.PassGenProBG);
             this.Panel_BG.Controls.Add(this.Panel_Mode);
             this.Panel_BG.Controls.Add(this.Panel_Feature);
             this.Panel_BG.Controls.Add(this.PassGenLenght);
@@ -65,8 +71,65 @@
             this.Panel_BG.Location = new System.Drawing.Point(0, 0);
             this.Panel_BG.Name = "Panel_BG";
             this.Panel_BG.Padding = new System.Windows.Forms.Padding(10);
-            this.Panel_BG.Size = new System.Drawing.Size(584, 491);
+            this.Panel_BG.Size = new System.Drawing.Size(584, 525);
             this.Panel_BG.TabIndex = 0;
+            // 
+            // BtnCopyPassword
+            // 
+            this.BtnCopyPassword.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(122)))), ((int)(((byte)(25)))));
+            this.BtnCopyPassword.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(122)))), ((int)(((byte)(25)))));
+            this.BtnCopyPassword.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(122)))), ((int)(((byte)(25)))));
+            this.BtnCopyPassword.BorderRadius = 3;
+            this.BtnCopyPassword.BorderSize = 0;
+            this.BtnCopyPassword.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.BtnCopyPassword.FlatAppearance.BorderSize = 0;
+            this.BtnCopyPassword.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.BtnCopyPassword.Font = new System.Drawing.Font("Segoe UI Semibold", 10.5F, System.Drawing.FontStyle.Bold);
+            this.BtnCopyPassword.ForeColor = System.Drawing.Color.White;
+            this.BtnCopyPassword.Location = new System.Drawing.Point(539, 374);
+            this.BtnCopyPassword.Name = "BtnCopyPassword";
+            this.BtnCopyPassword.Size = new System.Drawing.Size(35, 40);
+            this.BtnCopyPassword.TabIndex = 10;
+            this.BtnCopyPassword.TextColor = System.Drawing.Color.White;
+            this.BtnCopyPassword.UseVisualStyleBackColor = false;
+            this.BtnCopyPassword.Click += new System.EventHandler(this.BtnCopyPassword_Click);
+            // 
+            // PassGenProLabel
+            // 
+            this.PassGenProLabel.AutoSize = true;
+            this.PassGenProLabel.BorderRadius = 0;
+            this.PassGenProLabel.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
+            this.PassGenProLabel.Location = new System.Drawing.Point(10, 436);
+            this.PassGenProLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 5);
+            this.PassGenProLabel.Name = "PassGenProLabel";
+            this.PassGenProLabel.Size = new System.Drawing.Size(108, 19);
+            this.PassGenProLabel.TabIndex = 7;
+            this.PassGenProLabel.Text = "Progress Label...";
+            // 
+            // PassGenProBG
+            // 
+            this.PassGenProBG.BackColor = System.Drawing.Color.White;
+            this.PassGenProBG.BorderColor = System.Drawing.Color.DodgerBlue;
+            this.PassGenProBG.BorderRadius = 4;
+            this.PassGenProBG.BorderSize = 0;
+            this.PassGenProBG.Controls.Add(this.PassGenProFE);
+            this.PassGenProBG.Location = new System.Drawing.Point(10, 422);
+            this.PassGenProBG.Margin = new System.Windows.Forms.Padding(3, 3, 3, 5);
+            this.PassGenProBG.Name = "PassGenProBG";
+            this.PassGenProBG.Size = new System.Drawing.Size(564, 8);
+            this.PassGenProBG.TabIndex = 6;
+            // 
+            // PassGenProFE
+            // 
+            this.PassGenProFE.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(122)))), ((int)(((byte)(25)))));
+            this.PassGenProFE.BorderColor = System.Drawing.Color.DodgerBlue;
+            this.PassGenProFE.BorderRadius = 4;
+            this.PassGenProFE.BorderSize = 0;
+            this.PassGenProFE.Dock = System.Windows.Forms.DockStyle.Left;
+            this.PassGenProFE.Location = new System.Drawing.Point(0, 0);
+            this.PassGenProFE.Name = "PassGenProFE";
+            this.PassGenProFE.Size = new System.Drawing.Size(50, 8);
+            this.PassGenProFE.TabIndex = 0;
             // 
             // Panel_Mode
             // 
@@ -97,7 +160,7 @@
             this.LabelMode.Name = "LabelMode";
             this.LabelMode.Size = new System.Drawing.Size(259, 35);
             this.LabelMode.TabIndex = 0;
-            this.LabelMode.Text = "GİRİŞ YAP";
+            this.LabelMode.Text = "Mod Seç";
             this.LabelMode.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // RadioMixed
@@ -180,7 +243,7 @@
             this.LabelFeature.Name = "LabelFeature";
             this.LabelFeature.Size = new System.Drawing.Size(259, 35);
             this.LabelFeature.TabIndex = 0;
-            this.LabelFeature.Text = "GİRİŞ YAP";
+            this.LabelFeature.Text = "Özellik Seç";
             this.LabelFeature.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // CheckSpecialChars
@@ -286,8 +349,8 @@
             this.PassGenLenght.Cursor = System.Windows.Forms.Cursors.Hand;
             this.PassGenLenght.Location = new System.Drawing.Point(10, 321);
             this.PassGenLenght.Margin = new System.Windows.Forms.Padding(3, 3, 3, 5);
-            this.PassGenLenght.Maximum = 32;
-            this.PassGenLenght.Minimum = 6;
+            this.PassGenLenght.Maximum = 48;
+            this.PassGenLenght.Minimum = 8;
             this.PassGenLenght.Name = "PassGenLenght";
             this.PassGenLenght.Size = new System.Drawing.Size(564, 45);
             this.PassGenLenght.TabIndex = 4;
@@ -302,7 +365,7 @@
             this.PassGenLenght.TrackFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(122)))), ((int)(((byte)(25)))));
             this.PassGenLenght.TrackHeight = 8F;
             this.PassGenLenght.TrackRadius = 5F;
-            this.PassGenLenght.Value = 12;
+            this.PassGenLenght.Value = 15;
             this.PassGenLenght.Vertical = false;
             this.PassGenLenght.ValueChanged += new System.EventHandler(this.PassGenLenght_ValueChanged);
             // 
@@ -312,17 +375,15 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PassResultLabel.BackColor = System.Drawing.Color.White;
             this.PassResultLabel.BorderRadius = 5;
-            this.PassResultLabel.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.PassResultLabel.Cursor = System.Windows.Forms.Cursors.Default;
             this.PassResultLabel.Font = new System.Drawing.Font("Segoe UI Semibold", 11F, System.Drawing.FontStyle.Bold);
             this.PassResultLabel.Location = new System.Drawing.Point(10, 374);
-            this.PassResultLabel.Margin = new System.Windows.Forms.Padding(0, 3, 0, 0);
+            this.PassResultLabel.Margin = new System.Windows.Forms.Padding(3, 3, 5, 5);
             this.PassResultLabel.Name = "PassResultLabel";
             this.PassResultLabel.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
-            this.PassResultLabel.Size = new System.Drawing.Size(564, 52);
+            this.PassResultLabel.Size = new System.Drawing.Size(521, 40);
             this.PassResultLabel.TabIndex = 5;
             this.PassResultLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.PassResultLabel.DoubleClick += new System.EventHandler(this.PassResultLabel_DoubleClick);
-            this.PassResultLabel.MouseEnter += new System.EventHandler(this.PassResultLabel_MouseEnter);
             // 
             // BtnGenPass
             // 
@@ -338,11 +399,11 @@
             this.BtnGenPass.Font = new System.Drawing.Font("Segoe UI Semibold", 10.5F, System.Drawing.FontStyle.Bold);
             this.BtnGenPass.ForeColor = System.Drawing.Color.White;
             this.BtnGenPass.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.BtnGenPass.Location = new System.Drawing.Point(10, 446);
+            this.BtnGenPass.Location = new System.Drawing.Point(10, 480);
             this.BtnGenPass.Margin = new System.Windows.Forms.Padding(3, 20, 3, 3);
             this.BtnGenPass.Name = "BtnGenPass";
             this.BtnGenPass.Size = new System.Drawing.Size(564, 35);
-            this.BtnGenPass.TabIndex = 6;
+            this.BtnGenPass.TabIndex = 8;
             this.BtnGenPass.Text = "KAYDET";
             this.BtnGenPass.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.BtnGenPass.TextColor = System.Drawing.Color.White;
@@ -363,7 +424,7 @@
             this.PassLenghtLabel.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
             this.PassLenghtLabel.Size = new System.Drawing.Size(564, 42);
             this.PassLenghtLabel.TabIndex = 3;
-            this.PassLenghtLabel.Text = "Şifre Uzunluğu:";
+            this.PassLenghtLabel.Text = "Parola Uzunluğu:";
             this.PassLenghtLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // LabelHeader
@@ -378,19 +439,14 @@
             this.LabelHeader.Name = "LabelHeader";
             this.LabelHeader.Size = new System.Drawing.Size(564, 38);
             this.LabelHeader.TabIndex = 0;
-            this.LabelHeader.Text = "GİRİŞ YAP";
+            this.LabelHeader.Text = "Parola Oluştur";
             this.LabelHeader.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // MainToolTip
-            // 
-            this.MainToolTip.OwnerDraw = true;
-            this.MainToolTip.Draw += new System.Windows.Forms.DrawToolTipEventHandler(this.MainToolTip_Draw);
             // 
             // AstelPasswordGenerator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(584, 491);
+            this.ClientSize = new System.Drawing.Size(584, 525);
             this.Controls.Add(this.Panel_BG);
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -402,6 +458,8 @@
             this.Text = "AstelPasswordGenerator";
             this.Load += new System.EventHandler(this.AstelPasswordGenerator_Load);
             this.Panel_BG.ResumeLayout(false);
+            this.Panel_BG.PerformLayout();
+            this.PassGenProBG.ResumeLayout(false);
             this.Panel_Mode.ResumeLayout(false);
             this.Panel_Mode.PerformLayout();
             this.Panel_Feature.ResumeLayout(false);
@@ -428,7 +486,10 @@
         private TSCustomButton BtnGenPass;
         private TSCustomLabel PassLenghtLabel;
         internal TSCustomLabel LabelHeader;
-        private System.Windows.Forms.ToolTip MainToolTip;
         private TSCustomTrackBar PassGenLenght;
+        private TSCustomPanel PassGenProBG;
+        private TSCustomLabel PassGenProLabel;
+        private TSCustomPanel PassGenProFE;
+        private TSCustomButton BtnCopyPassword;
     }
 }
