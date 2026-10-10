@@ -63,6 +63,14 @@ namespace Astel.astel_modules{
         }
         // CHANGE PASSWORD LOAD
         // ======================================================================================================
+        protected override void OnDpiChanged(DpiChangedEventArgs e){
+            base.OnDpiChanged(e);
+            try{
+                Change_password_system_preloader();
+                this.PerformLayout();
+                this.Invalidate(true);
+            }catch{ }
+        }
         private void AstelChangePassword_Load(object sender, EventArgs e){
             TxtCurrentPassword.UseSystemPasswordChar = true;
             TxtNewPassword.UseSystemPasswordChar = true;
@@ -175,13 +183,13 @@ namespace Astel.astel_modules{
                         // Phase 2: re-encrypt every field with the NEW key.
                         // WithTempKey keeps the old key as master until the save succeeds.
                         TS_AES_Encryption.WithTempKey(newKey, () => {
-                            foreach (var item in plaintexts){
-                                item.Data.Element("Service")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Service));
-                                item.Data.Element("Email")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Email));
-                                item.Data.Element("Url")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Url));
-                                item.Data.Element("Password")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Password));
-                                item.Data.Element("Note")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.Note));
-                                item.Data.Element("PassChangeDate")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(item.PassChangeDate));
+                            foreach (var (Data, Service, Email, Url, Password, Note, PassChangeDate) in plaintexts){
+                                Data.Element("Service")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(Service));
+                                Data.Element("Email")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(Email));
+                                Data.Element("Url")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(Url));
+                                Data.Element("Password")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(Password));
+                                Data.Element("Note")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(Note));
+                                Data.Element("PassChangeDate")?.SetValue(TS_AES_Encryption.TS_AES_Encrypt(PassChangeDate));
                             }
                             return true;
                         });

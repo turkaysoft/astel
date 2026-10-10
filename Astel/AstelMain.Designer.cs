@@ -104,7 +104,7 @@
             this.PMaskActiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.PMaskDisabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changePasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.checkforUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.passwordGeneratorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.donateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -136,6 +136,7 @@
             this.DataMainTable.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.DataMainTable.BackgroundColor = System.Drawing.Color.White;
             this.DataMainTable.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.DataMainTable.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             this.DataMainTable.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(28)))), ((int)(((byte)(122)))), ((int)(((byte)(25)))));
@@ -177,7 +178,6 @@
             this.DataMainTable.Size = new System.Drawing.Size(988, 377);
             this.DataMainTable.TabIndex = 0;
             this.DataMainTable.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataMainTable_CellClick);
-            this.DataMainTable.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             // 
             // Panel_Footer
             // 
@@ -292,28 +292,16 @@
             // 
             // CmbService
             // 
-            this.CmbService.ArrowColor = System.Drawing.SystemColors.WindowText;
-            this.CmbService.BorderColor = System.Drawing.SystemColors.ControlDark;
-            this.CmbService.ButtonColor = System.Drawing.SystemColors.ControlDark;
             this.CmbService.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.CmbService.DisabledArrowColor = System.Drawing.SystemColors.GrayText;
-            this.CmbService.DisabledBackColor = System.Drawing.SystemColors.Control;
-            this.CmbService.DisabledButtonColor = System.Drawing.SystemColors.ControlDark;
-            this.CmbService.DisabledForeColor = System.Drawing.SystemColors.GrayText;
             this.CmbService.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this.CmbService.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CmbService.FocusedBorderColor = System.Drawing.Color.DodgerBlue;
             this.CmbService.Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F, System.Drawing.FontStyle.Bold);
             this.CmbService.FormattingEnabled = true;
-            this.CmbService.HoverBackColor = System.Drawing.SystemColors.Window;
-            this.CmbService.HoverButtonColor = System.Drawing.SystemColors.ControlDark;
-            this.CmbService.HoverForeColor = System.Drawing.SystemColors.WindowText;
-            this.CmbService.Location = new System.Drawing.Point(206, 32);
+            this.CmbService.ItemHeight = 22;
+            this.CmbService.Location = new System.Drawing.Point(206, 30);
             this.CmbService.Margin = new System.Windows.Forms.Padding(3, 3, 12, 3);
             this.CmbService.Name = "CmbService";
-            this.CmbService.SelectedBackColor = System.Drawing.SystemColors.Highlight;
-            this.CmbService.SelectedForeColor = System.Drawing.SystemColors.HighlightText;
-            this.CmbService.Size = new System.Drawing.Size(139, 25);
+            this.CmbService.Size = new System.Drawing.Size(139, 28);
             this.CmbService.TabIndex = 2;
             this.CmbService.SelectedIndexChanged += new System.EventHandler(this.CmbService_SelectedIndexChanged);
             // 
@@ -574,8 +562,8 @@
             this.safetyWarningsToolStripMenuItem,
             this.PassMaskStatusToolStripMenuItem,
             this.changePasswordToolStripMenuItem,
-            this.checkforUpdatesToolStripMenuItem});
-            this.settingsToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.checkForUpdatesToolStripMenuItem});
+            this.settingsToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.settingsToolStripMenuItem.Text = "Settings";
@@ -594,7 +582,7 @@
             // 
             this.lightThemeToolStripMenuItem.Name = "lightThemeToolStripMenuItem";
             this.lightThemeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
-            this.lightThemeToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.lightThemeToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
             this.lightThemeToolStripMenuItem.Text = "Light Theme";
             this.lightThemeToolStripMenuItem.Click += new System.EventHandler(this.LightThemeToolStripMenuItem_Click);
             // 
@@ -602,7 +590,7 @@
             // 
             this.darkThemeToolStripMenuItem.Name = "darkThemeToolStripMenuItem";
             this.darkThemeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F2;
-            this.darkThemeToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.darkThemeToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
             this.darkThemeToolStripMenuItem.Text = "Dark Theme";
             this.darkThemeToolStripMenuItem.Click += new System.EventHandler(this.DarkThemeToolStripMenuItem_Click);
             // 
@@ -610,7 +598,7 @@
             // 
             this.systemThemeToolStripMenuItem.Name = "systemThemeToolStripMenuItem";
             this.systemThemeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F3;
-            this.systemThemeToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.systemThemeToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
             this.systemThemeToolStripMenuItem.Text = "System Theme";
             this.systemThemeToolStripMenuItem.Click += new System.EventHandler(this.SystemThemeToolStripMenuItem_Click);
             // 
@@ -774,7 +762,7 @@
             this.astelExportFileToolStripMenuItem.Name = "astelExportFileToolStripMenuItem";
             this.astelExportFileToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.D1)));
-            this.astelExportFileToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.astelExportFileToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
             this.astelExportFileToolStripMenuItem.Text = "Astel Export File";
             this.astelExportFileToolStripMenuItem.Click += new System.EventHandler(this.AstelExportFileToolStripMenuItem_Click);
             // 
@@ -783,7 +771,7 @@
             this.cSVExportFileToolStripMenuItem.Name = "cSVExportFileToolStripMenuItem";
             this.cSVExportFileToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.D2)));
-            this.cSVExportFileToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.cSVExportFileToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
             this.cSVExportFileToolStripMenuItem.Text = "CSV Export File";
             this.cSVExportFileToolStripMenuItem.Click += new System.EventHandler(this.CSVExportFileToolStripMenuItem_Click);
             // 
@@ -909,17 +897,17 @@
             this.changePasswordToolStripMenuItem.Text = "Change Password";
             this.changePasswordToolStripMenuItem.Click += new System.EventHandler(this.ChangePasswordToolStripMenuItem_Click);
             // 
-            // checkforUpdatesToolStripMenuItem
+            // checkForUpdatesToolStripMenuItem
             // 
-            this.checkforUpdatesToolStripMenuItem.Name = "checkforUpdatesToolStripMenuItem";
-            this.checkforUpdatesToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F11;
-            this.checkforUpdatesToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
-            this.checkforUpdatesToolStripMenuItem.Text = "Check Update";
-            this.checkforUpdatesToolStripMenuItem.Click += new System.EventHandler(this.CheckforUpdatesToolStripMenuItem_Click);
+            this.checkForUpdatesToolStripMenuItem.Name = "checkForUpdatesToolStripMenuItem";
+            this.checkForUpdatesToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F11;
+            this.checkForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.checkForUpdatesToolStripMenuItem.Text = "Check Update";
+            this.checkForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.CheckForUpdatesToolStripMenuItem_Click);
             // 
             // passwordGeneratorToolStripMenuItem
             // 
-            this.passwordGeneratorToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.passwordGeneratorToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.passwordGeneratorToolStripMenuItem.Name = "passwordGeneratorToolStripMenuItem";
             this.passwordGeneratorToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
             this.passwordGeneratorToolStripMenuItem.Size = new System.Drawing.Size(124, 20);
@@ -928,7 +916,7 @@
             // 
             // donateToolStripMenuItem
             // 
-            this.donateToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.donateToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.donateToolStripMenuItem.Name = "donateToolStripMenuItem";
             this.donateToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D)));
@@ -938,7 +926,7 @@
             // 
             // aboutToolStripMenuItem
             // 
-            this.aboutToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.aboutToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F12;
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
@@ -1002,7 +990,7 @@
         private System.Windows.Forms.ToolStripMenuItem turkishToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem startupToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem changePasswordToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem checkforUpdatesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem checkForUpdatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem passwordGeneratorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem windowedToolStripMenuItem;

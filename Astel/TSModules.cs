@@ -9,6 +9,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using System.Net.Http;
@@ -551,9 +552,6 @@ namespace Astel{
                 { "SelectBoxBorderColor", "#d1d7df" },
                 { "CheckBoxUnCheckBorderColor", "#394149" },
                 { "TrackColor", "#D0D6DB" },
-                // TRANSPARENCIES / ALPHAS
-                { "TSBT_CloseBG", "#19FFFFFF" },
-                { "TSBT_CloseBGHover", "#32FFFFFF" },
                 // OTHER ACCENTS
                 { "AccentAqua", "#14786D" },
                 { "AccentOrange", "#9B5500" },
@@ -576,9 +574,6 @@ namespace Astel{
                 { "SelectBoxBorderColor", "#293036" },
                 { "CheckBoxUnCheckBorderColor", "#394149" },
                 { "TrackColor", "#394149" },
-                // TRANSPARENCIES / ALPHAS
-                { "TSBT_CloseBG", "#4B16191D" },
-                { "TSBT_CloseBGHover", "#4B0D0F12" },
                 // OTHER ACCENTS
                 { "AccentAqua", "#479EA1" },
                 { "AccentOrange", "#F58806" },
@@ -616,10 +611,22 @@ namespace Astel{
         // ======================================================================================================
         public static class TSThemeModeHelper{
             private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-            [DllImport("dwmapi.dll", PreserveSig = true)]
-            private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
             [DllImport("uxtheme.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
             private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
+            [DllImport("user32.dll")]
+            private static extern bool GetComboBoxInfo(IntPtr hWnd, ref COMBOBOXINFO pcbi);
+            [StructLayout(LayoutKind.Sequential)]
+            private struct COMBOBOXINFO{
+                public int cbSize;
+                public RECT rcItem;
+                public RECT rcButton;
+                public int buttonState;
+                public IntPtr hwndCombo;
+                public IntPtr hwndEdit;
+                public IntPtr hwndList;
+            }
+            [StructLayout(LayoutKind.Sequential)]
+            private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
             private static bool _isDarkModeEnabled = false;
             public static bool IsDarkModeEnabled => _isDarkModeEnabled;
             public static void SetThemeMode(bool enableTMode){
@@ -641,7 +648,10 @@ namespace Astel{
             private static void ApplyScrollTheme(Control parentControl, string targetTheme){
                 if (parentControl == null || parentControl.IsDisposed)
                     return;
-                if (parentControl is DataGridView || parentControl is ListBox || parentControl is ListView || parentControl is TreeView || parentControl is RichTextBox || parentControl is Panel || parentControl is Form || (parentControl is TextBox tb && tb.Multiline)){
+                if (parentControl is ComboBox comboBox){
+                    ApplyThemeToComboBoxDropDown(comboBox);
+                }
+                if (parentControl is DataGridView || parentControl is ComboBox || parentControl is ListBox || parentControl is ListView || parentControl is TreeView || parentControl is RichTextBox || parentControl is Panel || parentControl is Form || (parentControl is TextBox tb && tb.Multiline)){
                     if (parentControl.Tag as string != targetTheme){
                         SetWindowTheme(parentControl.Handle, targetTheme, null);
                         if (parentControl is DataGridView dgv){
@@ -661,6 +671,25 @@ namespace Astel{
                     }
                 }
             }
+            public static void ApplyThemeToComboBoxDropDown(ComboBox comboBox){
+                if (comboBox == null || comboBox.IsDisposed || comboBox.Disposing || !comboBox.IsHandleCreated)
+                    return;
+                try{
+                    bool dark = _isDarkModeEnabled;
+                    string theme = dark ? "DarkMode_Explorer" : "Explorer";
+                    try { SetWindowTheme(comboBox.Handle, theme, null); } catch { }
+                    try{
+                        COMBOBOXINFO cbi = new COMBOBOXINFO{
+                            cbSize = Marshal.SizeOf(typeof(COMBOBOXINFO))
+                        };
+                        if (GetComboBoxInfo(comboBox.Handle, ref cbi) && cbi.hwndList != IntPtr.Zero){
+                            SetWindowTheme(cbi.hwndList, theme, null);
+                            int useDark = dark ? 1 : 0;
+                            DwmSetWindowAttribute(cbi.hwndList, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDark, sizeof(int));
+                        }
+                    }catch { }
+                }catch { }
+            }
             public static int GetSystemTheme(int theme_mode){
                 if (theme_mode == 2){
                     using (var getSystemThemeKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")){
@@ -674,6 +703,8 @@ namespace Astel{
         // ======================================================================================================
         private static readonly object _lock_icon = new object();
         private static readonly Dictionary<string, Image> _cache_icon = new Dictionary<string, Image>();
+        private static readonly Queue<string> _cacheIconOrder = new Queue<string>();
+        private const int MaxIconCacheEntries = 256;
         public static void TSImageRenderer(object baseTarget, Image sourceImage, int basePadding, ContentAlignment imageAlign = ContentAlignment.MiddleCenter){
             if (baseTarget == null || sourceImage == null) return;
             const int minImageSize = 16;
@@ -694,11 +725,11 @@ namespace Astel{
                 int size;
                 float dpi;
                 if (baseTarget is Control ctrl){
-                    dpi = ctrl.DeviceDpi > 0 ? ctrl.DeviceDpi : 96f;
-                    int padding = (int)Math.Round(basePadding * (dpi / 96f));
+                    dpi = TSDpiHelper.EffectiveDpi(ctrl);
+                    int padding = (int)Math.Round(basePadding * TSDpiHelper.Scale(dpi));
                     size = ctrl.Height - padding;
                     if (size <= 0) size = minImageSize;
-                    string key = $"{sourceImage.GetHashCode()}_C_{size}_{dpi}";
+                    string key = $"{RuntimeHelpers.GetHashCode(sourceImage)}_{sourceImage.Width}x{sourceImage.Height}_C_{size}_{dpi}";
                     newImage = GetOrCreate(key, () => ResizeImage(sourceImage, size));
                     if (ctrl is Button btn){
                         oldImage = btn.Image;
@@ -713,23 +744,52 @@ namespace Astel{
                         newImage = null;
                     }
                 }else if (baseTarget is ToolStripItem item){
-                    dpi = item.GetCurrentParent()?.DeviceDpi ?? 96f;
-                    int padding = (int)Math.Round(basePadding * (dpi / 96f));
-                    size = item.Height - padding;
+                    int itemDpi = TSDpiHelper.BaseDpi;
+                    try{
+                        var host = item.GetCurrentParent();
+                        if (host != null) itemDpi = TSDpiHelper.EffectiveDpi(host);
+                        if (itemDpi <= TSDpiHelper.BaseDpi){
+                            try{
+                                var ownerStrip = item.Owner;
+                                if (ownerStrip != null){
+                                    int od = TSDpiHelper.EffectiveDpi(ownerStrip);
+                                    if (od > itemDpi) itemDpi = od;
+                                }
+                            }catch { }
+                        }
+                        if (itemDpi <= TSDpiHelper.BaseDpi){
+                            try{
+                                foreach (Form f in Application.OpenForms){
+                                    try { if (f != null && f.IsHandleCreated && f.DeviceDpi > itemDpi) itemDpi = f.DeviceDpi; } catch { }
+                                }
+                            }catch { }
+                        }
+                        if (itemDpi <= TSDpiHelper.BaseDpi){
+                            try { using (var sg = Graphics.FromHwnd(IntPtr.Zero)) { int sd = (int)sg.DpiX; if (sd > itemDpi) itemDpi = sd; } } catch { }
+                        }
+                    }
+                    catch { itemDpi = TSDpiHelper.BaseDpi; }
+                    dpi = itemDpi;
+                    size = (int)Math.Round((TSDpiHelper.MenuBaseIconPx - basePadding) * TSDpiHelper.Scale(dpi));
                     if (size <= 0) size = minImageSize;
-                    string key = $"{sourceImage.GetHashCode()}_T_{size}_{dpi}";
+                    string key = $"{RuntimeHelpers.GetHashCode(sourceImage)}_{sourceImage.Width}x{sourceImage.Height}_T_{size}_{dpi}";
                     newImage = GetOrCreate(key, () => ResizeImage(sourceImage, size));
+                    try { if (newImage is Bitmap nbmp) nbmp.SetResolution(dpi, dpi); } catch { }
                     oldImage = item.Image;
                     item.Image = newImage;
                 }else{
                     return;
                 }
-                if (oldImage != null && !ReferenceEquals(oldImage, sourceImage)){
+                if (oldImage != null && !ReferenceEquals(oldImage, sourceImage) && !IsSharedIcon(oldImage)){
                     oldImage.Dispose();
                 }
             }catch{
                 newImage?.Dispose();
             }
+        }
+        private static readonly HashSet<Image> _sharedImages = new HashSet<Image>();
+        private static bool IsSharedIcon(Image img){
+            lock (_lock_icon){ return img != null && _sharedImages.Contains(img); }
         }
         private static Image GetOrCreate(string key, Func<Image> factory){
             lock (_lock_icon){
@@ -737,6 +797,15 @@ namespace Astel{
                     return cached;
                 var created = factory();
                 _cache_icon[key] = created;
+                _sharedImages.Add(created);
+                _cacheIconOrder.Enqueue(key);
+                while (_cache_icon.Count > MaxIconCacheEntries && _cacheIconOrder.Count > 0){
+                    string oldest = _cacheIconOrder.Dequeue();
+                    if (oldest != null && _cache_icon.TryGetValue(oldest, out Image victim)){
+                        _cache_icon.Remove(oldest);
+                        _sharedImages.Remove(victim);
+                    }
+                }
                 return created;
             }
         }
@@ -767,16 +836,9 @@ namespace Astel{
             }
             return false;
         }
-        // DPI AWARE V2
+        // DWM WINDOW ATTRIBUTE
         // ======================================================================================================
-        [DllImport("user32.dll", PreserveSig = true)]
-        public static extern bool SetProcessDpiAwarenessContext(IntPtr dpiFlag);
-        public static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new IntPtr(-4);
-        // ENABLE EDGE WHEN BORDER IS CLOSED FOR WINDOWS 11
-        // ======================================================================================================
-        [DllImport("dwmapi.dll", SetLastError = true)]
+        [DllImport("dwmapi.dll")]
         public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int attributeValue, int attributeSize);
-        public const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
-        public enum DWM_WINDOW_CORNER_PREFERENCE{ Default = 0, DoNotRound = 1, Round = 2, RoundSmall = 3 }
     }
 }

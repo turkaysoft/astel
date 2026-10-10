@@ -92,6 +92,14 @@ namespace Astel.astel_modules{
         }
         // LOAD
         // ======================================================================================================
+        protected override void OnDpiChanged(DpiChangedEventArgs e){
+            base.OnDpiChanged(e);
+            try{
+                Prompt_system_preloader();
+                this.PerformLayout();
+                this.Invalidate(true);
+            }catch{ }
+        }
         private void AstelPasswordPrompt_Load(object sender, EventArgs e){
             TxtPassword.UseSystemPasswordChar = true;
             AcceptButton = BtnUnlock;

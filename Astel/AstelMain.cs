@@ -71,8 +71,9 @@ namespace Astel{
             russianToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             spanishToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             turkishToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
-            //
-            SystemEvents.UserPreferenceChanged += (s, e) => TSUseSystemTheme();
+            // DYNAMIC THEME LISTENER
+            // ==================
+            SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
             //
             CmbService.MouseWheel += CmbService_MouseWheel;
             // IDLE AUTO-LOCK TIMER
@@ -160,7 +161,7 @@ namespace Astel{
             protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e){
                 Graphics g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
-                float dpiScale = g.DpiX / 96f;
+                float dpiScale = TSDpiHelper.Scale(g.DpiX);
                 Rectangle rect = e.ImageRectangle;
                 using (Pen anti_alias_pen = new Pen(header_colors[2], 2.2f * dpiScale)){
                     anti_alias_pen.StartCap = LineCap.Round;
@@ -174,6 +175,8 @@ namespace Astel{
             }
         }
         private class HeaderColors : ProfessionalColorTable{
+            public override Color MenuStripGradientBegin => header_colors[0];
+            public override Color MenuStripGradientEnd => header_colors[0];
             public override Color MenuItemSelected => header_colors[0];
             public override Color ToolStripDropDownBackground => header_colors[0];
             public override Color ImageMarginGradientBegin => header_colors[0];
@@ -196,10 +199,11 @@ namespace Astel{
         // LOAD SOFTWARE SETTINGS
         // ======================================================================================================
         private void RunSoftwareEngine(){
+            try { TSDpiHelper.ScaleToolStripRecursive(HeaderMenu, this.DeviceDpi); } catch { }
             // DOUBLE BUFFER TABLE
             typeof(DataGridView).InvokeMember("DoubleBuffered", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty, null, DataMainTable, new object[] { true });
             // TEMPORARY COLUMN
-            DataMainTable.RowTemplate.Height = (int)(32 * this.DeviceDpi / 96f);
+            TSDpiHelper.ScaleDataGridView(DataMainTable, null, 32);
             for (int i = 1; i <= 7; i++){ DataMainTable.Columns.Add("x" + i, "x" + i); }
             //
             foreach (DataGridViewColumn DataTable in DataMainTable.Columns){
@@ -268,6 +272,32 @@ namespace Astel{
         // MAIN TOOLTIP SETTINGS
         // ======================================================================================================
         private void MainToolTip_Draw(object sender, DrawToolTipEventArgs e){ e.DrawBackground(); e.DrawBorder(); e.DrawText(); }
+        // DPI SCALING
+        // ======================================================================================================
+        private void ApplyDpiScaling(){
+            if (IsDisposed || Disposing) return;
+            TSDpiHelper.ScaleDataGridView(DataMainTable, new[]{ 40, 110, 160, 140, 150, 130, 130 }, 32);
+            TSDpiHelper.ScaleToolStripRecursive(HeaderMenu, this.DeviceDpi);
+            try{
+                BtnCopyEmail.Height = TxtEmail.Height + 2;
+                BtnCopyPassword.Height = TxtPassword.Height + 2;
+                BtnCopyUrl.Height = TxtUrl.Height + 2;
+                BtnRndPssGen.Height = TxtPassword.Height + 2;
+                BtnOpenUrl.Height = TxtUrl.Height + 2;
+            }catch{ }
+        }
+        protected override void OnDpiChanged(DpiChangedEventArgs e){
+            base.OnDpiChanged(e);
+            try{
+                this.SuspendLayout();
+                ApplyDpiScaling();
+                if (e.DeviceDpiNew != e.DeviceDpiOld)
+                    Theme_engine(theme);
+                this.ResumeLayout(true);
+                this.PerformLayout();
+                this.Invalidate(true);
+            }catch{ }
+        }
         // LOAD
         // ======================================================================================================
         private void Astel_Load(object sender, EventArgs e){
@@ -287,18 +317,7 @@ namespace Astel{
             //
             Text = TS_VersionEngine.TS_SoftwareVersion(0);
             //
-            float dpi = this.DeviceDpi / 96f;
-            DataMainTable.Columns[0].Width = (int)(40 * dpi);
-            DataMainTable.Columns[1].Width = (int)(110 * dpi);
-            DataMainTable.Columns[2].Width = (int)(160 * dpi);
-            DataMainTable.Columns[3].Width = (int)(140 * dpi);
-            DataMainTable.Columns[4].Width = (int)(150 * dpi);
-            DataMainTable.Columns[5].Width = (int)(130 * dpi);
-            DataMainTable.Columns[6].Width = (int)(130 * dpi);
-            foreach (DataGridViewColumn col in DataMainTable.Columns){
-                int pad = (int)(3 * dpi);
-                col.DefaultCellStyle.Padding = new Padding(pad, 0, 0, 0);
-            }
+            ApplyDpiScaling();
             // EVENT: KEY NAVIGATION FOR TABLE
             DataMainTable.KeyDown += DataMainTable_KeyDown;
             // PASSWORD MASK FORMATTING
@@ -309,8 +328,10 @@ namespace Astel{
             // IDLE ACTIVITY TRACKING (app-wide message filter)
             Application.AddMessageFilter(_activityFilter);
             _idleTimer.Start();
-            // RUN TASKS
-            Task.Run(() => Software_update_check(0));
+            // SOFTWARE UPDATE CHECK NATIVE
+            // ====================================
+            try { _ = Software_update_check(0); } catch (Exception) { }
+            //
             if (auto_backup_status == 1 && (auto_backup == null || auto_backup.IsCompleted)){
                 cts = new CancellationTokenSource();
                 auto_backup = StartAutoBackup(cts.Token);
@@ -1013,7 +1034,18 @@ namespace Astel{
         private void DarkThemeToolStripMenuItem_Click(object sender, EventArgs e){
             themeSystem = 0; Theme_engine(0); SaveTheme(0); Select_theme_active(sender);
         }
-        private void TSUseSystemTheme(){ if (themeSystem == 2) Theme_engine(TSThemeModeHelper.GetSystemTheme(2)); }
+        private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e){
+            TSUseSystemTheme();
+        }
+        private void TSUseSystemTheme(){
+            if (themeSystem != 2) return;
+            if (IsDisposed || Disposing) return;
+            if (InvokeRequired){
+                try { BeginInvoke(new Action(() => TSUseSystemTheme())); } catch { }
+                return;
+            }
+            Theme_engine(TSThemeModeHelper.GetSystemTheme(2));
+        }
         private void SaveTheme(int ts){
             // SAVE CURRENT THEME
             try{
@@ -1023,27 +1055,28 @@ namespace Astel{
         }
         private void Theme_engine(int ts){
             try{
+                try { TSDpiHelper.ScaleToolStripRecursive(HeaderMenu, this.DeviceDpi); } catch { }
                 theme = ts;
                 //
                 TSThemeModeHelper.SetThemeMode(ts == 0);
                 TSThemeModeHelper.InitializeThemeForForm(this);
                 //
                 if (theme == 1){
-                    TSImageRenderer(settingsToolStripMenuItem, Properties.Resources.tm_settings_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(themeToolStripMenuItem, Properties.Resources.tm_theme_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(languageToolStripMenuItem, Properties.Resources.tm_language_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(startupToolStripMenuItem, Properties.Resources.tm_startup_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(changePasswordToolStripMenuItem, Properties.Resources.tm_change_password_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(checkforUpdatesToolStripMenuItem, Properties.Resources.tm_update_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(dataTransferToolStripMenuItem, Properties.Resources.tm_data_transfer_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(exportDataToolStripMenuItem, Properties.Resources.tm_data_export_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(importDataToolStripMenuItem, Properties.Resources.tm_data_import_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(autoDataBackupToolStripMenuItem, Properties.Resources.tm_auto_backup_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(safetyWarningsToolStripMenuItem, Properties.Resources.tm_safety_warnings_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(PassMaskStatusToolStripMenuItem, Properties.Resources.tm_password_mask_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(passwordGeneratorToolStripMenuItem, Properties.Resources.tm_password_generator_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(donateToolStripMenuItem, Properties.Resources.tm_donate_light, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(aboutToolStripMenuItem, Properties.Resources.tm_about_light, 0, ContentAlignment.MiddleRight);
+                    TSImageRenderer(settingsToolStripMenuItem, Properties.Resources.tm_settings_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(themeToolStripMenuItem, Properties.Resources.tm_theme_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(languageToolStripMenuItem, Properties.Resources.tm_language_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(startupToolStripMenuItem, Properties.Resources.tm_startup_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(changePasswordToolStripMenuItem, Properties.Resources.tm_change_password_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(checkForUpdatesToolStripMenuItem, Properties.Resources.tm_update_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(dataTransferToolStripMenuItem, Properties.Resources.tm_data_transfer_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(exportDataToolStripMenuItem, Properties.Resources.tm_data_export_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(importDataToolStripMenuItem, Properties.Resources.tm_data_import_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(autoDataBackupToolStripMenuItem, Properties.Resources.tm_auto_backup_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(safetyWarningsToolStripMenuItem, Properties.Resources.tm_safety_warnings_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(PassMaskStatusToolStripMenuItem, Properties.Resources.tm_password_mask_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(passwordGeneratorToolStripMenuItem, Properties.Resources.tm_password_generator_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(donateToolStripMenuItem, Properties.Resources.tm_donate_light, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(aboutToolStripMenuItem, Properties.Resources.tm_about_light, 0, ContentAlignment.MiddleCenter);
                     //
                     TSImageRenderer(AddBtn, Properties.Resources.ct_add_light, 23, ContentAlignment.MiddleLeft);
                     TSImageRenderer(UpdateBtn, Properties.Resources.ct_update_light, 23, ContentAlignment.MiddleLeft);
@@ -1055,21 +1088,21 @@ namespace Astel{
                     TSImageRenderer(BtnRndPssGen, Properties.Resources.ct_generate_light, 12);
                     TSImageRenderer(BtnOpenUrl, Properties.Resources.ct_link_mc_light, 12);
                 }else if (theme == 0){
-                    TSImageRenderer(settingsToolStripMenuItem, Properties.Resources.tm_settings_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(themeToolStripMenuItem, Properties.Resources.tm_theme_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(languageToolStripMenuItem, Properties.Resources.tm_language_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(startupToolStripMenuItem, Properties.Resources.tm_startup_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(changePasswordToolStripMenuItem, Properties.Resources.tm_change_password_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(checkforUpdatesToolStripMenuItem, Properties.Resources.tm_update_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(dataTransferToolStripMenuItem, Properties.Resources.tm_data_transfer_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(exportDataToolStripMenuItem, Properties.Resources.tm_data_export_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(importDataToolStripMenuItem, Properties.Resources.tm_data_import_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(autoDataBackupToolStripMenuItem, Properties.Resources.tm_auto_backup_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(safetyWarningsToolStripMenuItem, Properties.Resources.tm_safety_warnings_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(PassMaskStatusToolStripMenuItem, Properties.Resources.tm_password_mask_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(passwordGeneratorToolStripMenuItem, Properties.Resources.tm_password_generator_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(donateToolStripMenuItem, Properties.Resources.tm_donate_dark, 0, ContentAlignment.MiddleRight);
-                    TSImageRenderer(aboutToolStripMenuItem, Properties.Resources.tm_about_dark, 0, ContentAlignment.MiddleRight);
+                    TSImageRenderer(settingsToolStripMenuItem, Properties.Resources.tm_settings_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(themeToolStripMenuItem, Properties.Resources.tm_theme_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(languageToolStripMenuItem, Properties.Resources.tm_language_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(startupToolStripMenuItem, Properties.Resources.tm_startup_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(changePasswordToolStripMenuItem, Properties.Resources.tm_change_password_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(checkForUpdatesToolStripMenuItem, Properties.Resources.tm_update_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(dataTransferToolStripMenuItem, Properties.Resources.tm_data_transfer_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(exportDataToolStripMenuItem, Properties.Resources.tm_data_export_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(importDataToolStripMenuItem, Properties.Resources.tm_data_import_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(autoDataBackupToolStripMenuItem, Properties.Resources.tm_auto_backup_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(safetyWarningsToolStripMenuItem, Properties.Resources.tm_safety_warnings_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(PassMaskStatusToolStripMenuItem, Properties.Resources.tm_password_mask_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(passwordGeneratorToolStripMenuItem, Properties.Resources.tm_password_generator_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(donateToolStripMenuItem, Properties.Resources.tm_donate_dark, 0, ContentAlignment.MiddleCenter);
+                    TSImageRenderer(aboutToolStripMenuItem, Properties.Resources.tm_about_dark, 0, ContentAlignment.MiddleCenter);
                     //
                     TSImageRenderer(AddBtn, Properties.Resources.ct_add_dark, 23, ContentAlignment.MiddleLeft);
                     TSImageRenderer(UpdateBtn, Properties.Resources.ct_update_dark, 23, ContentAlignment.MiddleLeft);
@@ -1291,7 +1324,7 @@ namespace Astel{
                 // CHANGE PASSWORD
                 changePasswordToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_change_password");
                 // UPDATE CHECK
-                checkforUpdatesToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_update");
+                checkForUpdatesToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_update");
                 // PASS GEN
                 passwordGeneratorToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderMenu", "header_menu_pass_gen");
                 // DONATE
@@ -1514,10 +1547,12 @@ namespace Astel{
         }
         // UPDATE CHECK ENGINE
         // ======================================================================================================
-        private void CheckforUpdatesToolStripMenuItem_Click(object sender, EventArgs e){
-            Task.Run(() => Software_update_check(1));
+        private void CheckForUpdatesToolStripMenuItem_Click(object sender, EventArgs e){
+            try{
+                _ = Software_update_check(1);
+            }catch (Exception){ }
         }
-        public async void Software_update_check(int _check_update_ui){
+        public async Task Software_update_check(int _check_update_ui){
             try{
                 TSGetLangs software_lang = new TSGetLangs(lang_path);
                 SetUpdateMenuEnabled(false);
@@ -1531,7 +1566,7 @@ namespace Astel{
                     handler.UseProxy = false;
                     using (HttpClient httpClient = new HttpClient(handler)){
                         httpClient.Timeout = TimeSpan.FromSeconds(15);
-                        httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue{ NoCache = true, NoStore = true, MustRevalidate = true };
+                        httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true, MustRevalidate = true };
                         httpClient.DefaultRequestHeaders.Pragma.ParseAdd("no-cache");
                         string versionUrl = TS_LinkSystem.github_link_lv;
                         versionUrl += (versionUrl.Contains("?") ? "&" : "?") + "_ts=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -1574,18 +1609,23 @@ namespace Astel{
                 }
             }catch (Exception ex){
                 Debug.WriteLine(ex, "Software_update_check()");
-                TSGetLangs software_lang = new TSGetLangs(lang_path);
-                TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("SoftwareUpdate", "su_error"), "\n\n", ex.Message), string.Format(software_lang.TSReadLangs("SoftwareUpdate", "su_title"), Application.ProductName));
+                if (_check_update_ui == 1 && !IsDisposed && !Disposing){
+                    TSGetLangs software_lang = new TSGetLangs(lang_path);
+                    TS_MessageBoxEngine.TS_MessageBox(this, 3, string.Format(software_lang.TSReadLangs("SoftwareUpdate", "su_error"), "\n\n", ex.Message), string.Format(software_lang.TSReadLangs("SoftwareUpdate", "su_title"), Application.ProductName));
+                }
             }finally{
                 SetUpdateMenuEnabled(true);
             }
         }
         private void SetUpdateMenuEnabled(bool enabled){
-            if (InvokeRequired){
-                BeginInvoke(new Action(() => checkforUpdatesToolStripMenuItem.Enabled = enabled));
-            }else{
-                checkforUpdatesToolStripMenuItem.Enabled = enabled;
-            }
+            try{
+                if (IsDisposed || Disposing) return;
+                if (InvokeRequired){
+                    BeginInvoke(new Action(() => checkForUpdatesToolStripMenuItem.Enabled = enabled));
+                }else{
+                    checkForUpdatesToolStripMenuItem.Enabled = enabled;
+                }
+            }catch { }
         }
         // DATA TRANSFER
         // ======================================================================================================
@@ -2199,6 +2239,7 @@ namespace Astel{
                 dt.Clear();
             }
             DataMainTable.DataSource = null;
+            try { SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged; } catch { }
             // SECURITY: never leave the master key in memory
             TS_AES_Encryption.ClearKey();
             // SECURITY: wipe clipboard content we copied

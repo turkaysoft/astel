@@ -14,38 +14,33 @@ namespace Astel{
             //
             typeof(DataGridView).InvokeMember("DoubleBuffered", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty, null, AboutTable, new object[] { true });
             //
-            PanelHeader.Parent = ImageAbout;
-            CloseAboutBtn.Parent = PanelHeader;
-            AboutTable.RowTemplate.Height = (int)(28 * this.DeviceDpi / 96f);
             AboutTable.Columns.Add("LangName", "Language");
             AboutTable.Columns.Add("LangTranslator", "Translator");
-            AboutTable.Columns[0].Width = (int)(110 * this.DeviceDpi / 96f);
             AboutTable.AllowUserToResizeColumns = false;
-            foreach (DataGridViewColumn columnPadding in AboutTable.Columns){
-                int scaledPadding = (int)(3 * this.DeviceDpi / 96f);
-                columnPadding.DefaultCellStyle.Padding = new Padding(scaledPadding, 0, 0, 0);
-            }
             foreach (DataGridViewColumn A_Column in AboutTable.Columns) { A_Column.SortMode = DataGridViewColumnSortMode.NotSortable; }
-            //
-            TSImageRenderer(CloseAboutBtn, Properties.Resources.ts_close, 20);
+            ApplyDpiScaling(this.DeviceDpi);
         }
-        // DRAGGING VARIABLES
+        // UI DPI (shared standard: TSDpiHelper)
         // ======================================================================================================
-        private bool formIsDragging = false;
-        private Point formDraggingStartPoint = new Point(0, 0);
-        // ENABLE EDGE WHEN BORDER IS CLOSED FOR WINDOWS 11
-        // ======================================================================================================
-        protected override void OnHandleCreated(EventArgs e){
-            base.OnHandleCreated(e);
-            if (Program.Windows_mode == 1){
-                int preference = (int)DWM_WINDOW_CORNER_PREFERENCE.Round;
-                DwmSetWindowAttribute(this.Handle, DWMWA_WINDOW_CORNER_PREFERENCE, ref preference, sizeof(int));
-            }
+        private void ApplyDpiScaling(int dpi){
+            if (IsDisposed || Disposing) return;
+            if (dpi <= 0) dpi = TSDpiHelper.BaseDpi;
+            TSDpiHelper.ScaleDataGridView(AboutTable, new[] { 110 }, 28, dpiOverride: dpi);
+        }
+        protected override void OnDpiChanged(DpiChangedEventArgs e){
+            base.OnDpiChanged(e);
+            try{
+                ApplyDpiScaling(e.DeviceDpiNew);
+                About_Preloader();
+                this.PerformLayout();
+                this.Invalidate(true);
+            }catch (Exception){ }
         }
         // ABOUT LOAD
         // ======================================================================================================
         private async void AstelAbout_Load(object sender, EventArgs e){
             try{
+                ApplyDpiScaling(this.DeviceDpi);
                 LabelDeveloper.Text = Application.CompanyName;
                 LabelSoftware.Text = Application.ProductName;
                 LabelVersion.Text = TS_VersionEngine.TS_SoftwareVersion(1);
@@ -105,11 +100,6 @@ namespace Astel{
                 AboutTable.ColumnHeadersDefaultCellStyle.ForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "DynamicThemeActiveBtnBGColor");
                 AboutTable.DefaultCellStyle.SelectionBackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_AccentColor");
                 AboutTable.DefaultCellStyle.SelectionForeColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "DynamicThemeActiveBtnBGColor");
-                //
-                CloseAboutBtn.BackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_CloseBG");
-                CloseAboutBtn.FlatAppearance.BorderColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_CloseBG");
-                CloseAboutBtn.FlatAppearance.MouseOverBackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_CloseBGHover");
-                CloseAboutBtn.FlatAppearance.MouseDownBackColor = TS_ThemeEngine.ColorMode(AstelMain.theme, "TSBT_CloseBGHover");
                 // ======================================================================================================
                 // TEXTS
                 TSGetLangs software_lang = new TSGetLangs(AstelMain.lang_path);
@@ -146,23 +136,5 @@ namespace Astel{
                 Process.Start(new ProcessStartInfo(TS_LinkSystem.ts_donate){ UseShellExecute = true });
             }catch (Exception){ }
         }
-        // FORM DRAGGING SYSTEM
-        // ======================================================================================================
-        private void PanelHeader_MouseDown(object sender, MouseEventArgs e){
-            if (e.Button == MouseButtons.Left){
-                formIsDragging = true;
-                formDraggingStartPoint = new Point(e.X, e.Y);
-            }
-        }
-        private void PanelHeader_MouseMove(object sender, MouseEventArgs e){
-            if (formIsDragging){
-                Point form_location = PointToScreen(e.Location);
-                this.Location = new Point(form_location.X - formDraggingStartPoint.X, form_location.Y - formDraggingStartPoint.Y);
-            }
-        }
-        private void PanelHeader_MouseUp(object sender, MouseEventArgs e){ formIsDragging = false; }
-        // CLOSE ABOUT
-        // ======================================================================================================
-        private void CloseAboutBtn_Click(object sender, EventArgs e){ Close(); }
     }
 }

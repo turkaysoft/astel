@@ -84,6 +84,14 @@ namespace Astel.astel_modules{
         }
         // LOGIN LOAD
         // ======================================================================================================
+        protected override void OnDpiChanged(DpiChangedEventArgs e){
+            base.OnDpiChanged(e);
+            try{
+                Login_system_preloader();
+                this.PerformLayout();
+                this.Invalidate(true);
+            }catch{ }
+        }
         private void AstelLogin_Load(object sender, EventArgs e){
             TxtPassword.UseSystemPasswordChar = true;
             AcceptButton = BtnLogin;

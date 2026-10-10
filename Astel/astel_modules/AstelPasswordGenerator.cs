@@ -235,6 +235,14 @@ namespace Astel.astel_modules{
         private void MainToolTip_Draw(object sender, DrawToolTipEventArgs e) { e.DrawBackground(); e.DrawBorder(); e.DrawText(); }
         // LOAD
         // ======================================================================================================
+        protected override void OnDpiChanged(DpiChangedEventArgs e){
+            base.OnDpiChanged(e);
+            try{
+                Password_generator_preloader();
+                this.PerformLayout();
+                this.Invalidate(true);
+            }catch{ }
+        }
         private void AstelPasswordGenerator_Load(object sender, EventArgs e){
             AcceptButton = BtnGenPass;
             TSGetLangs lang = new TSGetLangs(AstelMain.lang_path);
