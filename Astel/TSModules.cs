@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Net;
+using System.Threading;
 using System.Net.NetworkInformation;
 using System.Net.Http;
 using System.Diagnostics;
@@ -369,6 +371,7 @@ namespace Astel{
                     }
                     if (sectionHeaderIndex < 0) return false;
                     var currentOrder = new List<string>();
+                    var seenOrderKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     var kv = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     for (int i = sectionHeaderIndex + 1; i < sectionEndIndex; i++){
                         var raw = lines[i];
@@ -378,19 +381,20 @@ namespace Astel{
                         if (eq > 0){
                             var key = t.Substring(0, eq).Trim();
                             var val = t.Substring(eq + 1).Trim();
-                            if (!currentOrder.Contains(key, StringComparer.OrdinalIgnoreCase))
+                            if (seenOrderKeys.Add(key))
                                 currentOrder.Add(key);
                             kv[key] = val;
                         }
                     }
                     var orderedList = orderedKeys.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).ToList();
+                    var orderedSet = new HashSet<string>(orderedList, StringComparer.OrdinalIgnoreCase);
                     var desiredOrder = new List<string>();
                     foreach (var key in orderedList){
                         if (kv.ContainsKey(key))
                             desiredOrder.Add(key);
                     }
                     foreach (var key in currentOrder){
-                        if (!orderedList.Contains(key, StringComparer.OrdinalIgnoreCase))
+                        if (!orderedSet.Contains(key))
                             desiredOrder.Add(key);
                     }
                     if (currentOrder.SequenceEqual(desiredOrder, StringComparer.OrdinalIgnoreCase))
@@ -401,7 +405,7 @@ namespace Astel{
                             rebuilt.Add($"{key}={val}");
                     }
                     foreach (var key in currentOrder){
-                        if (!orderedList.Contains(key, StringComparer.OrdinalIgnoreCase) && kv.TryGetValue(key, out var val))
+                        if (!orderedSet.Contains(key) && kv.TryGetValue(key, out var val))
                             rebuilt.Add($"{key}={val}");
                     }
                     lines.RemoveRange(sectionHeaderIndex, sectionEndIndex - sectionHeaderIndex);
@@ -431,6 +435,7 @@ namespace Astel{
         public static readonly string ts_lang_pl = ts_lf + @"\Polish.ini";              // Polish       | pl
         public static readonly string ts_lang_pt = ts_lf + @"\Portuguese.ini";          // Portuguese   | pt
         public static readonly string ts_lang_ru = ts_lf + @"\Russian.ini";             // Russian      | ru
+        public static readonly string ts_lang_sl = ts_lf + @"\Slovenian.ini";           // Slovenian    | sl
         public static readonly string ts_lang_es = ts_lf + @"\Spanish.ini";             // Spanish      | es
         public static readonly string ts_lang_tr = ts_lf + @"\Turkish.ini";             // Turkish      | tr
         // LANGUAGE MANAGE FUNCTIONS
@@ -449,6 +454,7 @@ namespace Astel{
             { "pl", ts_lang_pl },
             { "pt", ts_lang_pt },
             { "ru", ts_lang_ru },
+            { "sl", ts_lang_sl },
             { "es", ts_lang_es },
             { "tr", ts_lang_tr },
         };
@@ -811,30 +817,39 @@ namespace Astel{
         }
         // INTERNET CONNECTION STATUS
         // ======================================================================================================
-        public static async Task<bool> IsNetworkAvailable(){
+        public static async Task<bool> IsNetworkAvailable(CancellationToken ct = default){
             if (!NetworkInterface.GetIsNetworkAvailable())
                 return false;
-            string[] urls = {
-                "https://www.gstatic.com/generate_204",
-                "https://www.cloudflare.com",
-                "https://www.google.com"
-            };
             try{
                 using (HttpClient client = new HttpClient()){
                     client.Timeout = TimeSpan.FromSeconds(3);
-                    foreach (var url in urls){
-                        try{
-                            using (HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)){
-                                if (response.IsSuccessStatusCode)
-                                    return true;
-                            }
-                        }catch { }
+                    Task<bool>[] tasks = new Task<bool>[]{
+                        ProbeUrlAsync(client, "https://www.gstatic.com/generate_204", HttpStatusCode.NoContent, ct),
+                        ProbeUrlAsync(client, "https://www.cloudflare.com", null, ct),
+                        ProbeUrlAsync(client, "https://www.google.com", null, ct)
+                    };
+                    var pending = new List<Task<bool>>(tasks);
+                    while (pending.Count > 0){
+                        if (ct.IsCancellationRequested) return false;
+                        Task<bool> done = await Task.WhenAny(pending).ConfigureAwait(false);
+                        pending.Remove(done);
+                        bool ok = false;
+                        try { ok = await done.ConfigureAwait(false); } catch { }
+                        if (ok) return true;
                     }
                 }
             }catch{
                 return false;
             }
             return false;
+        }
+        private static async Task<bool> ProbeUrlAsync(HttpClient client, string url, HttpStatusCode? expectStatus, CancellationToken ct){
+            try{
+                using (HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false)){
+                    if (expectStatus.HasValue) return response.StatusCode == expectStatus.Value;
+                    return response.IsSuccessStatusCode;
+                }
+            }catch{ return false; }
         }
         // DWM WINDOW ATTRIBUTE
         // ======================================================================================================

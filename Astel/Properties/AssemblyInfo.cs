@@ -1,4 +1,4 @@
-﻿using System.Resources;
+using System.Resources;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -30,6 +30,6 @@ using System.Runtime.InteropServices;
 //      Yapı Numarası
 //      Düzeltme
 //
-[assembly: AssemblyVersion("26.11.0.0")]
-[assembly: AssemblyFileVersion("26.11.0.0")]
+[assembly: AssemblyVersion("26.12.0.0")]
+[assembly: AssemblyFileVersion("26.12.0.0")]
 [assembly: NeutralResourcesLanguage("tr-TR")]

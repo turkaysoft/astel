@@ -83,6 +83,7 @@
             this.russianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.spanishToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.turkishToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.slovenianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.windowedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fullScreenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -563,7 +564,6 @@
             this.PassMaskStatusToolStripMenuItem,
             this.changePasswordToolStripMenuItem,
             this.checkForUpdatesToolStripMenuItem});
-            this.settingsToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.settingsToolStripMenuItem.Text = "Settings";
@@ -582,7 +582,7 @@
             // 
             this.lightThemeToolStripMenuItem.Name = "lightThemeToolStripMenuItem";
             this.lightThemeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
-            this.lightThemeToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.lightThemeToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.lightThemeToolStripMenuItem.Text = "Light Theme";
             this.lightThemeToolStripMenuItem.Click += new System.EventHandler(this.LightThemeToolStripMenuItem_Click);
             // 
@@ -590,7 +590,7 @@
             // 
             this.darkThemeToolStripMenuItem.Name = "darkThemeToolStripMenuItem";
             this.darkThemeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F2;
-            this.darkThemeToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.darkThemeToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.darkThemeToolStripMenuItem.Text = "Dark Theme";
             this.darkThemeToolStripMenuItem.Click += new System.EventHandler(this.DarkThemeToolStripMenuItem_Click);
             // 
@@ -598,7 +598,7 @@
             // 
             this.systemThemeToolStripMenuItem.Name = "systemThemeToolStripMenuItem";
             this.systemThemeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F3;
-            this.systemThemeToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.systemThemeToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.systemThemeToolStripMenuItem.Text = "System Theme";
             this.systemThemeToolStripMenuItem.Click += new System.EventHandler(this.SystemThemeToolStripMenuItem_Click);
             // 
@@ -618,6 +618,7 @@
             this.polishToolStripMenuItem,
             this.portugueseToolStripMenuItem,
             this.russianToolStripMenuItem,
+            this.slovenianToolStripMenuItem,
             this.spanishToolStripMenuItem,
             this.turkishToolStripMenuItem});
             this.languageToolStripMenuItem.Name = "languageToolStripMenuItem";
@@ -627,92 +628,98 @@
             // arabicToolStripMenuItem
             // 
             this.arabicToolStripMenuItem.Name = "arabicToolStripMenuItem";
-            this.arabicToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.arabicToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.arabicToolStripMenuItem.Text = "Arabic";
             // 
             // chineseToolStripMenuItem
             // 
             this.chineseToolStripMenuItem.Name = "chineseToolStripMenuItem";
-            this.chineseToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.chineseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.chineseToolStripMenuItem.Text = "Chinese";
             // 
             // englishToolStripMenuItem
             // 
             this.englishToolStripMenuItem.Name = "englishToolStripMenuItem";
-            this.englishToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.englishToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.englishToolStripMenuItem.Text = "English";
             // 
             // dutchToolStripMenuItem
             // 
             this.dutchToolStripMenuItem.Name = "dutchToolStripMenuItem";
-            this.dutchToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.dutchToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.dutchToolStripMenuItem.Text = "Dutch";
             // 
             // frenchToolStripMenuItem
             // 
             this.frenchToolStripMenuItem.Name = "frenchToolStripMenuItem";
-            this.frenchToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.frenchToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.frenchToolStripMenuItem.Text = "French";
             // 
             // germanToolStripMenuItem
             // 
             this.germanToolStripMenuItem.Name = "germanToolStripMenuItem";
-            this.germanToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.germanToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.germanToolStripMenuItem.Text = "German";
             // 
             // hindiToolStripMenuItem
             // 
             this.hindiToolStripMenuItem.Name = "hindiToolStripMenuItem";
-            this.hindiToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.hindiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.hindiToolStripMenuItem.Text = "Hindi";
             // 
             // italianToolStripMenuItem
             // 
             this.italianToolStripMenuItem.Name = "italianToolStripMenuItem";
-            this.italianToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.italianToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.italianToolStripMenuItem.Text = "Italian";
             // 
             // japaneseToolStripMenuItem
             // 
             this.japaneseToolStripMenuItem.Name = "japaneseToolStripMenuItem";
-            this.japaneseToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.japaneseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.japaneseToolStripMenuItem.Text = "Japanese";
             // 
             // koreanToolStripMenuItem
             // 
             this.koreanToolStripMenuItem.Name = "koreanToolStripMenuItem";
-            this.koreanToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.koreanToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.koreanToolStripMenuItem.Text = "Korean";
             // 
             // polishToolStripMenuItem
             // 
             this.polishToolStripMenuItem.Name = "polishToolStripMenuItem";
-            this.polishToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.polishToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.polishToolStripMenuItem.Text = "Polish";
             // 
             // portugueseToolStripMenuItem
             // 
             this.portugueseToolStripMenuItem.Name = "portugueseToolStripMenuItem";
-            this.portugueseToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.portugueseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.portugueseToolStripMenuItem.Text = "Portuguese";
             // 
             // russianToolStripMenuItem
             // 
             this.russianToolStripMenuItem.Name = "russianToolStripMenuItem";
-            this.russianToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.russianToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.russianToolStripMenuItem.Text = "Russian";
             // 
             // spanishToolStripMenuItem
             // 
             this.spanishToolStripMenuItem.Name = "spanishToolStripMenuItem";
-            this.spanishToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.spanishToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.spanishToolStripMenuItem.Text = "Spanish";
             // 
             // turkishToolStripMenuItem
             // 
             this.turkishToolStripMenuItem.Name = "turkishToolStripMenuItem";
-            this.turkishToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.turkishToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.turkishToolStripMenuItem.Text = "Turkish";
+            // 
+            // slovenianToolStripMenuItem
+            // 
+            this.slovenianToolStripMenuItem.Name = "slovenianToolStripMenuItem";
+            this.slovenianToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.slovenianToolStripMenuItem.Text = "Slovenian";
             // 
             // startupToolStripMenuItem
             // 
@@ -762,7 +769,7 @@
             this.astelExportFileToolStripMenuItem.Name = "astelExportFileToolStripMenuItem";
             this.astelExportFileToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.D1)));
-            this.astelExportFileToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
+            this.astelExportFileToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.astelExportFileToolStripMenuItem.Text = "Astel Export File";
             this.astelExportFileToolStripMenuItem.Click += new System.EventHandler(this.AstelExportFileToolStripMenuItem_Click);
             // 
@@ -771,7 +778,7 @@
             this.cSVExportFileToolStripMenuItem.Name = "cSVExportFileToolStripMenuItem";
             this.cSVExportFileToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.D2)));
-            this.cSVExportFileToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
+            this.cSVExportFileToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.cSVExportFileToolStripMenuItem.Text = "CSV Export File";
             this.cSVExportFileToolStripMenuItem.Click += new System.EventHandler(this.CSVExportFileToolStripMenuItem_Click);
             // 
@@ -907,7 +914,6 @@
             // 
             // passwordGeneratorToolStripMenuItem
             // 
-            this.passwordGeneratorToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.passwordGeneratorToolStripMenuItem.Name = "passwordGeneratorToolStripMenuItem";
             this.passwordGeneratorToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
             this.passwordGeneratorToolStripMenuItem.Size = new System.Drawing.Size(124, 20);
@@ -916,7 +922,6 @@
             // 
             // donateToolStripMenuItem
             // 
-            this.donateToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.donateToolStripMenuItem.Name = "donateToolStripMenuItem";
             this.donateToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D)));
@@ -926,7 +931,6 @@
             // 
             // aboutToolStripMenuItem
             // 
-            this.aboutToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F12;
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
@@ -1036,6 +1040,7 @@
         private System.Windows.Forms.ToolStripMenuItem PassMaskStatusToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem PMaskActiveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem PMaskDisabledToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem slovenianToolStripMenuItem;
     }
 }
 

@@ -52,6 +52,7 @@ namespace Astel{
             polishToolStripMenuItem.Tag = "pl";
             portugueseToolStripMenuItem.Tag = "pt";
             russianToolStripMenuItem.Tag = "ru";
+            slovenianToolStripMenuItem.Tag = "sl";
             spanishToolStripMenuItem.Tag = "es";
             turkishToolStripMenuItem.Tag = "tr";
             // LANGUAGE SET EVENTS
@@ -69,6 +70,7 @@ namespace Astel{
             polishToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             portugueseToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             russianToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
+            slovenianToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             spanishToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             turkishToolStripMenuItem.Click += LanguageToolStripMenuItem_Click;
             // DYNAMIC THEME LISTENER
@@ -240,6 +242,7 @@ namespace Astel{
                 { "pl", (ts_lang_pl, polishToolStripMenuItem, File.Exists(ts_lang_pl)) },
                 { "pt", (ts_lang_pt, portugueseToolStripMenuItem, File.Exists(ts_lang_pt)) },
                 { "ru", (ts_lang_ru, russianToolStripMenuItem, File.Exists(ts_lang_ru)) },
+                { "sl", (ts_lang_sl, slovenianToolStripMenuItem, File.Exists(ts_lang_sl)) },
                 { "es", (ts_lang_es, spanishToolStripMenuItem, File.Exists(ts_lang_es)) },
                 { "tr", (ts_lang_tr, turkishToolStripMenuItem, File.Exists(ts_lang_tr)) },
             };
@@ -1294,6 +1297,7 @@ namespace Astel{
                 polishToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderLangs", "lang_pl");
                 portugueseToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderLangs", "lang_pt");
                 russianToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderLangs", "lang_ru");
+                slovenianToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderLangs", "lang_sl");
                 spanishToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderLangs", "lang_es");
                 turkishToolStripMenuItem.Text = software_lang.TSReadLangs("HeaderLangs", "lang_tr");
                 // STARTUP MODE
